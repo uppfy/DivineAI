@@ -259,7 +259,7 @@ export interface PaginationParams {
 }
 
 // Generic paginated query function
-export async function getPaginatedDocs<T>(
+export async function getPaginatedDocs<T extends { id: string }>(
   collectionName: string,
   constraints: QueryConstraint[],
   pagination: PaginationParams
