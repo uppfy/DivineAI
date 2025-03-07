@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if true;  // Temporarily allow all reads
+      allow create: if isOwner(userId) && incomingData().role == 'user';
+      allow update: if (isOwner(userId) && incomingData().role == existingData().role) || isAdmin();
+      allow delete: if isAdmin();
+
+      function incomingData() {
+        return request.resource.data;
+      }
+      
+      function existingData() {
+        return resource.data;
+      }
+    }
+
+    // Journal entries collection
+    match /users/{userId}/journal/{entryId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        request.resource.data.keys().hasAll(['title', 'content', 'date', 'userId', 'createdAt']) &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(userId) &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(userId);
+    }
+
+    // Prayer entries collection (for better organization and querying)
+    match /users/{userId}/prayers/{prayerId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        request.resource.data.keys().hasAll(['title', 'content', 'date', 'userId', 'createdAt', 'isAnswered']) &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(userId) &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(userId);
+    }
+
+    // Communities collection
+    match /communities/{communityId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        (
+          exists(/databases/$(database)/documents/communities/$(communityId)) &&
+          get(/databases/$(database)/documents/communities/$(communityId)).data.creatorId == request.auth.uid
+        ) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Devotionals collection
+    match /devotionals/{devotionalId} {
+      allow read: if true;  // Allow public read access
+      allow write: if isAdmin();  // Only admins can write
+    }
+
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'commentCount'])) ||
+        isAdmin()
+      );
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      // Reactions subcollection
+      match /reactions/{userId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated() && userId == request.auth.uid;
+        allow delete: if isAuthenticated() && userId == request.auth.uid;
+      }
+    }
+
+    // Comments collection
+    match /comments/{commentId} {
+      // Allow public read access to comments
+      allow read: if true;
+      
+      // Allow authenticated users to create comments
+      allow create: if isAuthenticated() && 
+        // Validate comment data
+        request.resource.data.keys().hasAll(['postId', 'userId', 'userDisplayName', 'userPhotoURL', 'content', 'createdAt']) &&
+        // Ensure user can only create comments with their own userId
+        request.resource.data.userId == request.auth.uid &&
+        // Validate content is not empty
+        request.resource.data.content.size() > 0 &&
+        request.resource.data.content.size() <= 1000;
+      
+      // Allow users to update or delete their own comments
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+  }
+} 
