@@ -10,6 +10,7 @@ import {
   searchJournalEntries,
   markPrayerAsAnswered
 } from '@/lib/journal';
+import { Timestamp } from 'firebase/firestore';
 
 interface UseJournalOptions {
   initialFilter?: {
@@ -63,11 +64,11 @@ export function useJournal(options: UseJournalOptions = {}) {
     
     try {
       const newEntry = await createJournalEntry(user, entry);
-      // Wait for the document to be retrieved with the server timestamp
+      // Convert to Timestamp objects for state management
       const entryWithTimestamp = {
         ...newEntry,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
       };
       setEntries(prev => [entryWithTimestamp, ...prev]);
       return entryWithTimestamp;
