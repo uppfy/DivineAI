@@ -353,8 +353,9 @@ export default function Journal() {
                 <Card>
                   <CardContent className="p-6">
                     <EntryForm
-                      entry={editingEntry}
+                      initialData={editingEntry}
                       onSubmit={handleUpdateEntry}
+                      isEditing={true}
                     />
                   </CardContent>
                 </Card>
