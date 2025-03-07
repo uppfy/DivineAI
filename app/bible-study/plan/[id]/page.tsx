@@ -189,7 +189,7 @@ export default function StudyPlanPage({ params }: PageProps) {
                   <CardContent className="p-4 space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-700">Created by</h4>
-                      <p className="text-sm text-gray-600">{currentStudy.creator?.name || 'Anonymous'}</p>
+                      <p className="text-sm text-gray-600">{currentStudy.userDisplayName || 'Anonymous'}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-700">Last updated</h4>
@@ -308,7 +308,7 @@ export default function StudyPlanPage({ params }: PageProps) {
                       <div className="space-y-4">
                         <div>
                           <h4 className="text-sm font-medium text-gray-700">Created by</h4>
-                          <p className="text-sm text-gray-600">{currentStudy.creator?.name || 'Anonymous'}</p>
+                          <p className="text-sm text-gray-600">{currentStudy.userDisplayName || 'Anonymous'}</p>
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-700">Last updated</h4>
