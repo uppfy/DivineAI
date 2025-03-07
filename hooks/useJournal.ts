@@ -63,8 +63,14 @@ export function useJournal(options: UseJournalOptions = {}) {
     
     try {
       const newEntry = await createJournalEntry(user, entry);
-      setEntries(prev => [newEntry, ...prev]);
-      return newEntry;
+      // Wait for the document to be retrieved with the server timestamp
+      const entryWithTimestamp = {
+        ...newEntry,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      setEntries(prev => [entryWithTimestamp, ...prev]);
+      return entryWithTimestamp;
     } catch (err) {
       setError(err as Error);
       throw err;
