@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: result.user.email!,
           username: result.user.email!.split('@')[0], // Use email prefix as username
           displayName: result.user.displayName || result.user.email!.split('@')[0],
-          avatarUrl: result.user.photoURL, // Add the Google profile picture URL
+          avatarUrl: result.user.photoURL || undefined, // Convert null to undefined
           role: 'user',
           joinedCommunities: [],
           followers: [],
