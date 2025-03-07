@@ -40,12 +40,12 @@ export function handleFirebaseError(error: any): DatabaseError {
   // Map Firebase error codes to our custom error codes
   switch (error.code) {
     case 'permission-denied':
-      return new DatabaseError(ErrorMessages.PERMISSION_DENIED, ErrorCodes.PERMISSION_DENIED, error);
+      return new DatabaseError(ErrorMessages[ErrorCodes.PERMISSION_DENIED], ErrorCodes.PERMISSION_DENIED, error);
     case 'not-found':
-      return new DatabaseError(ErrorMessages.NOT_FOUND, ErrorCodes.NOT_FOUND, error);
+      return new DatabaseError(ErrorMessages[ErrorCodes.NOT_FOUND], ErrorCodes.NOT_FOUND, error);
     case 'already-exists':
-      return new DatabaseError(ErrorMessages.ALREADY_EXISTS, ErrorCodes.ALREADY_EXISTS, error);
+      return new DatabaseError(ErrorMessages[ErrorCodes.ALREADY_EXISTS], ErrorCodes.ALREADY_EXISTS, error);
     default:
-      return new DatabaseError(ErrorMessages.UNKNOWN_ERROR, ErrorCodes.UNKNOWN_ERROR, error);
+      return new DatabaseError(ErrorMessages[ErrorCodes.UNKNOWN_ERROR], ErrorCodes.UNKNOWN_ERROR, error);
   }
 } 
