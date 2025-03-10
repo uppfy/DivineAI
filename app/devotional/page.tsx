@@ -99,6 +99,7 @@ const Page: NextPage = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
             body: JSON.stringify({
               scripture: selectedDevotional.scripture,
@@ -106,33 +107,15 @@ const Page: NextPage = () => {
             }),
           });
 
-          const contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("Server returned non-JSON response");
-          }
-
           const data = await response.json();
           
           if (!response.ok) {
-            throw new Error(data.error || `Server error: ${response.status}`);
-          }
-          
-          if (!data.insights) {
-            throw new Error('No insights returned from server');
+            throw new Error(data.error || 'Failed to generate insights');
           }
 
           setInsights(data.insights);
         } catch (error) {
-          let errorMessage = 'Failed to generate insights. Please try again.';
-          
-          if (error instanceof Error) {
-            errorMessage = error.message;
-            // Clean up common error messages
-            if (errorMessage.includes('OpenAI API key not configured')) {
-              errorMessage = 'AI service is not properly configured. Please contact support.';
-            }
-          }
-          
+          const errorMessage = error instanceof Error ? error.message : 'Failed to generate insights';
           setInsightsError(errorMessage);
           console.error('Error loading insights:', error);
         } finally {

@@ -6,33 +6,25 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: Request) {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: 'OpenAI API key not configured' },
+      { status: 500 }
+    );
+  }
+
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return new NextResponse(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+    const { scripture, reflection } = await req.json();
+
+    if (!scripture || !reflection) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
       );
     }
-
-    const body = await req.json();
-    
-    if (!body.scripture || !body.reflection) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    const { scripture, reflection } = body;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo", // Using GPT-3.5 for faster responses
       messages: [
         {
           role: "system",
@@ -43,35 +35,25 @@ export async function POST(req: Request) {
           content: `Please provide deeper insights for this devotional:\n\nScripture: ${scripture.text} (${scripture.reference})\n\nReflection: ${reflection}\n\nProvide analysis of key themes, original language insights if relevant, historical context, and practical modern applications.`
         }
       ],
-      temperature: 0.7
+      temperature: 0.7,
+      max_tokens: 500 // Limiting response length for faster results
     });
 
-    if (!completion.choices[0]?.message?.content) {
-      return new NextResponse(
-        JSON.stringify({ error: 'No response from OpenAI' }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+    const insights = completion.choices[0]?.message?.content;
+    
+    if (!insights) {
+      return NextResponse.json(
+        { error: 'No insights generated' },
+        { status: 500 }
       );
     }
 
-    return new NextResponse(
-      JSON.stringify({ insights: completion.choices[0].message.content }),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return NextResponse.json({ insights });
   } catch (error) {
-    console.error('Error details:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return new NextResponse(
-      JSON.stringify({ error: `Failed to generate insights: ${errorMessage}` }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+    console.error('Error generating insights:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate insights. Please try again.' },
+      { status: 500 }
     );
   }
 } 
