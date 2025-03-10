@@ -7,7 +7,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
+
+interface Message {
+  type: 'success' | 'error';
+  text: string;
+}
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -15,17 +20,20 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setMessage(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setMessage({
+        type: 'error',
+        text: 'Passwords do not match'
+      });
       return;
     }
 
@@ -33,38 +41,37 @@ export default function SignUp() {
 
     try {
       await signUp(email, password, username, displayName);
-      // Show success message
-      const successMessage = (
-        <div className="bg-green-50 text-green-600 p-4 rounded-lg text-sm flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 flex-shrink-0" />
-          <div>
-            <p className="font-medium">Account created successfully!</p>
-            <p>Please check your email to verify your account. Redirecting...</p>
-          </div>
-        </div>
-      );
-      setError(successMessage);
+      setMessage({
+        type: 'success',
+        text: 'Account created successfully! Please check your email to verify your account.'
+      });
       
       // Delay redirect to show the success message
       setTimeout(() => {
         router.push('/verify-email');
       }, 2000);
     } catch (error: any) {
-      setError(error.message || 'Failed to create an account');
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to create an account'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setError('');
+    setMessage(null);
     setIsLoading(true);
 
     try {
       await signInWithGoogle();
       router.push('/community');
     } catch (error: any) {
-      setError(error.message || 'Failed to sign in with Google');
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to sign in with Google'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,9 +89,18 @@ export default function SignUp() {
 
         <Card className="p-6 space-y-6 bg-white/80 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm">
-                {error}
+            {message && (
+              <div className={`flex items-center gap-2 p-4 rounded-lg text-sm ${
+                message.type === 'success' 
+                  ? 'bg-green-50 text-green-600' 
+                  : 'bg-red-50 text-red-600'
+              }`}>
+                {message.type === 'success' ? (
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <XCircle className="h-5 w-5 flex-shrink-0" />
+                )}
+                <p>{message.text}</p>
               </div>
             )}
             
