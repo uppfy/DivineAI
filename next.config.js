@@ -19,7 +19,25 @@ const nextConfig = {
         pathname: '/storage/v1/object/public/**',
       }
     ],
+    domains: [
+      'divine-comfort.com',
+      'lh3.googleusercontent.com', // For Google profile pictures
+      'firebasestorage.googleapis.com', // For Firebase Storage
+      'www.gstatic.com' // For Google sign-in button
+    ],
   },
-}
+  async redirects() {
+    return [
+      {
+        source: '/app/:path*',
+        destination: 'https://divine-comfort.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
+  env: {
+    NEXT_PUBLIC_APP_URL: 'https://divine-comfort.com'
+  }
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig; 

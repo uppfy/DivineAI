@@ -56,7 +56,7 @@ const Page: NextPage = () => {
   const handleShare = async () => {
     if (!selectedDevotional) return;
     
-    const shareText = `${selectedDevotional.title}\n\n${selectedDevotional.scripture.text} - ${selectedDevotional.scripture.reference}\n\nRead more at: [Your App URL]`;
+    const shareText = `${selectedDevotional.title}\n\n${selectedDevotional.scripture.text} - ${selectedDevotional.scripture.reference}\n\nRead more at: https://divine-comfort.com/devotional`;
     
     try {
       if (navigator.share) {
