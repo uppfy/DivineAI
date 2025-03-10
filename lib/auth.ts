@@ -30,6 +30,7 @@ export async function signUp(email: string, password: string, username: string, 
         email: true,
         push: true,
       },
+      emailVerified: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
