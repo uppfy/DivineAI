@@ -6,15 +6,30 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json(
-      { error: 'OpenAI API key not configured' },
-      { status: 500 }
-    );
-  }
-
   try {
-    const { scripture, reflection } = await req.json();
+    if (!process.env.OPENAI_API_KEY) {
+      return new NextResponse(
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const body = await req.json();
+    
+    if (!body.scripture || !body.reflection) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { scripture, reflection } = body;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -32,16 +47,31 @@ export async function POST(req: Request) {
     });
 
     if (!completion.choices[0]?.message?.content) {
-      throw new Error('No response from OpenAI');
+      return new NextResponse(
+        JSON.stringify({ error: 'No response from OpenAI' }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    return NextResponse.json({ insights: completion.choices[0].message.content });
+    return new NextResponse(
+      JSON.stringify({ insights: completion.choices[0].message.content }),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (error) {
     console.error('Error details:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json(
-      { error: `Failed to generate insights: ${errorMessage}` },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: `Failed to generate insights: ${errorMessage}` }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 } 

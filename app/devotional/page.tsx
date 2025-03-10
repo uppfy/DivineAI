@@ -106,15 +106,33 @@ const Page: NextPage = () => {
             }),
           });
 
+          const contentType = response.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Server returned non-JSON response");
+          }
+
           const data = await response.json();
           
           if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch insights');
+            throw new Error(data.error || `Server error: ${response.status}`);
           }
           
+          if (!data.insights) {
+            throw new Error('No insights returned from server');
+          }
+
           setInsights(data.insights);
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to generate insights. Please try again.';
+          let errorMessage = 'Failed to generate insights. Please try again.';
+          
+          if (error instanceof Error) {
+            errorMessage = error.message;
+            // Clean up common error messages
+            if (errorMessage.includes('OpenAI API key not configured')) {
+              errorMessage = 'AI service is not properly configured. Please contact support.';
+            }
+          }
+          
           setInsightsError(errorMessage);
           console.error('Error loading insights:', error);
         } finally {
