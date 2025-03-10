@@ -40,6 +40,7 @@ const Page: NextPage = () => {
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [insights, setInsights] = useState<string | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
 
   // Fetch recent devotionals from Firestore
   const { data: devotionals, loading: isLoading, error } = useCollection<Devotional>(
@@ -50,8 +51,19 @@ const Page: NextPage = () => {
   useEffect(() => {
     if (devotionals && devotionals.length > 0) {
       setSelectedDevotional(devotionals[0]);
+      // Reset insights state when devotional changes
+      setInsights(null);
+      setShowAiInsights(false);
+      setInsightsError(null);
     }
   }, [devotionals]);
+
+  // Reset insights when selecting a different devotional
+  useEffect(() => {
+    setInsights(null);
+    setShowAiInsights(false);
+    setInsightsError(null);
+  }, [selectedDevotional?.dateId]);
 
   const handleShare = async () => {
     if (!selectedDevotional) return;
@@ -81,6 +93,7 @@ const Page: NextPage = () => {
       setShowAiInsights(true);
       if (!insights) {
         setIsLoadingInsights(true);
+        setInsightsError(null);
         try {
           const response = await fetch('/api/devotional/insights', {
             method: 'POST',
@@ -93,10 +106,16 @@ const Page: NextPage = () => {
             }),
           });
 
-          if (!response.ok) throw new Error('Failed to fetch insights');
           const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch insights');
+          }
+          
           setInsights(data.insights);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to generate insights. Please try again.';
+          setInsightsError(errorMessage);
           console.error('Error loading insights:', error);
         } finally {
           setIsLoadingInsights(false);
@@ -249,6 +268,11 @@ const Page: NextPage = () => {
                           {isLoadingInsights ? (
                             <div className="flex items-center justify-center py-4">
                               <Loader2 className="w-6 h-6 animate-spin text-[#6b21a8]" />
+                              <span className="ml-2 text-gray-600">Generating insights...</span>
+                            </div>
+                          ) : insightsError ? (
+                            <div className="text-red-600 py-2">
+                              {insightsError}
                             </div>
                           ) : (
                             <p className="text-gray-700 whitespace-pre-line">
