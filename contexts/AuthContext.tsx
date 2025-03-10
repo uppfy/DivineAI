@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { 
-  User,
+  User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -20,7 +20,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface AuthContextType {
-  user: User | null;
+  user: FirebaseUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -42,7 +42,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
 
@@ -103,7 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Update email verification status in Firestore
       if (userCredential.user.emailVerified) {
         await updateUser(userCredential.user.uid, {
-          emailVerified: true
+          emailVerified: true,
+          lastSeen: new Date().toISOString(),
+          isOnline: true,
         });
       }
     } catch (error) {
@@ -126,9 +128,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: result.user.uid,
           uid: result.user.uid,
           email: result.user.email!,
-          username: result.user.email!.split('@')[0], // Use email prefix as username
+          username: result.user.email!.split('@')[0],
           displayName: result.user.displayName || result.user.email!.split('@')[0],
-          avatarUrl: result.user.photoURL || undefined, // Convert null to undefined
+          avatarUrl: result.user.photoURL || undefined,
           role: 'user',
           joinedCommunities: [],
           followers: [],
@@ -139,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: true,
             push: true,
           },
+          emailVerified: true, // Google accounts are pre-verified
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -153,6 +156,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      if (user) {
+        // Update user status in Firestore
+        await updateUser(user.uid, {
+          isOnline: false,
+          lastSeen: new Date().toISOString(),
+        });
+      }
       await firebaseSignOut(auth);
     } catch (error) {
       console.error('Error signing out:', error);

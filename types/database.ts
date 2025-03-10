@@ -36,6 +36,7 @@ export interface User extends BaseDocument {
     email: boolean;
     push: boolean;
   };
+  emailVerified: boolean;
 }
 
 // Community related interfaces
