@@ -71,7 +71,7 @@ interface Navbar1Props {
 const Navbar1 = ({
   logo = {
     url: "/",
-    src: "/logo.png",
+    src: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//digital-comfort-logo.svg",
     alt: "Divine Comfort",
     title: "Divine Comfort",
   },
@@ -202,110 +202,126 @@ const Navbar1 = ({
   };
 
   return (
-    <section className="py-4 bg-white shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="max-w-7xl mx-auto">
-          <nav className="hidden justify-between lg:flex">
-            <div className="flex items-center gap-6">
-              <a href={logo.url} className="flex items-center gap-2">
-                <span className="text-2xl font-semibold text-[#6b21a8]">{logo.title}</span>
-              </a>
-              <div className="flex items-center">
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    {menu.map((item) => renderMenuItem(item))}
-                  </NavigationMenuList>
-                </NavigationMenu>
+    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
+      {/* Desktop Navigation */}
+      <nav className="container hidden h-16 items-center px-4 md:flex">
+        <div className="flex-shrink-0">
+          <Link href={logo.url} className="flex items-center">
+            <Image
+              src={logo.src}
+              alt={logo.alt}
+              width={150}
+              height={40}
+              className="h-12 w-auto"
+              priority
+            />
+          </Link>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <NavigationMenu>
+            <NavigationMenuList>
+              {menu.map((item) => renderMenuItem(item))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+        <div className="flex-shrink-0 hidden lg:flex lg:gap-4">
+          {renderAuthSection()}
+        </div>
+      </nav>
+
+      {/* Mobile Navigation */}
+      <nav className="container flex h-16 items-center justify-between px-4 md:hidden">
+        <Link href={logo.url} className="flex items-center">
+          <Image
+            src={logo.src}
+            alt={logo.alt}
+            width={120}
+            height={32}
+            className="h-10 w-auto"
+            priority
+          />
+        </Link>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="size-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>
+                <Link href={logo.url} className="flex items-center justify-center">
+                  <Image
+                    src={logo.src}
+                    alt={logo.alt}
+                    width={120}
+                    height={32}
+                    className="h-10 w-auto"
+                    priority
+                  />
+                </Link>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="my-6 flex flex-col gap-6">
+              <Accordion
+                type="single"
+                collapsible
+                className="flex w-full flex-col gap-4"
+              >
+                {menu.map((item) => renderMobileMenuItem(item))}
+              </Accordion>
+              <div className="border-t py-4">
+                <div className="grid grid-cols-2 justify-start">
+                  {mobileExtraLinks.map((link, idx) => (
+                    <a
+                      key={idx}
+                      className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
+                      href={link.url}
+                    >
+                      {link.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className="py-6">
+                {user ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsSheetOpen(false)}
+                      className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full mt-2 text-base font-semibold leading-7 text-red-600 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 text-center"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/sign-in"
+                      className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/sign-up"
+                      className="-mx-3 block px-3 py-2.5 text-base font-semibold leading-7 text-white bg-[#6b21a8] hover:bg-[#581c87] rounded-lg text-center mt-2"
+                    >
+                      Get started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
-            <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4">
-              {renderAuthSection()}
-            </div>
-          </nav>
-          <div className="block lg:hidden">
-            <div className="flex items-center justify-between">
-              <a href={logo.url} className="flex items-center gap-2">
-                <span className="text-2xl font-semibold text-[#6b21a8]">{logo.title}</span>
-              </a>
-              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Menu className="size-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>
-                      <a href={logo.url} className="flex items-center gap-2">
-                        <span className="text-2xl font-semibold text-[#6b21a8]">
-                          {logo.title}
-                        </span>
-                      </a>
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="my-6 flex flex-col gap-6">
-                    <Accordion
-                      type="single"
-                      collapsible
-                      className="flex w-full flex-col gap-4"
-                    >
-                      {menu.map((item) => renderMobileMenuItem(item))}
-                    </Accordion>
-                    <div className="border-t py-4">
-                      <div className="grid grid-cols-2 justify-start">
-                        {mobileExtraLinks.map((link, idx) => (
-                          <a
-                            key={idx}
-                            className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
-                            href={link.url}
-                          >
-                            {link.name}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="py-6">
-                      {user ? (
-                        <>
-                          <Link
-                            href="/profile"
-                            onClick={() => setIsSheetOpen(false)}
-                            className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
-                          >
-                            Profile
-                          </Link>
-                          <button
-                            onClick={handleSignOut}
-                            className="w-full mt-2 text-base font-semibold leading-7 text-red-600 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 text-center"
-                          >
-                            Logout
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <Link
-                            href="/sign-in"
-                            className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
-                          >
-                            Sign in
-                          </Link>
-                          <Link
-                            href="/sign-up"
-                            className="-mx-3 block px-3 py-2.5 text-base font-semibold leading-7 text-white bg-[#6b21a8] hover:bg-[#581c87] rounded-lg text-center mt-2"
-                          >
-                            Get started
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+          </SheetContent>
+        </Sheet>
+      </nav>
+    </header>
   );
 };
 

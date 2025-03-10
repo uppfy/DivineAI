@@ -1,5 +1,7 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
 
 const Footer = () => {
   return (
@@ -7,7 +9,16 @@ const Footer = () => {
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-[#6b21a8]">Divine Comfort</h3>
+            <Link href="/" className="block">
+              <Image
+                src="https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//digital-comfort-logo.svg"
+                alt="Divine Comfort"
+                width={150}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
+            </Link>
             <p className="text-sm text-gray-600">
               Finding peace and guidance through faith and spiritual connection.
             </p>
