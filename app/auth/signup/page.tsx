@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -33,7 +33,22 @@ export default function SignUp() {
 
     try {
       await signUp(email, password, username, displayName);
-      router.push('/community');
+      // Show success message
+      const successMessage = (
+        <div className="bg-green-50 text-green-600 p-4 rounded-lg text-sm flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">Account created successfully!</p>
+            <p>Please check your email to verify your account. Redirecting...</p>
+          </div>
+        </div>
+      );
+      setError(successMessage);
+      
+      // Delay redirect to show the success message
+      setTimeout(() => {
+        router.push('/verify-email');
+      }, 2000);
     } catch (error: any) {
       setError(error.message || 'Failed to create an account');
     } finally {

@@ -9,10 +9,12 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  reload
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { createUser } from '@/lib/db';
+import { createUser, updateUser } from '@/lib/db';
 import { User as DbUser } from '@/types/database';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -25,6 +27,8 @@ export interface AuthContextType {
   signUp: (email: string, password: string, username: string, displayName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
+  isEmailVerified: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -40,9 +44,15 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Reload user to get latest email verification status
+        await reload(user);
+        setIsEmailVerified(user.emailVerified);
+      }
       setUser(user);
       setLoading(false);
     });
@@ -53,6 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, username: string, displayName: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Send verification email
+      await sendEmailVerification(userCredential.user);
       
       // Create user profile in Firestore
       const userData: DbUser = {
@@ -71,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: true,
           push: true,
         },
+        emailVerified: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -84,7 +98,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Update email verification status in Firestore
+      if (userCredential.user.emailVerified) {
+        await updateUser(userCredential.user.uid, {
+          emailVerified: true
+        });
+      }
     } catch (error) {
       throw error;
     }
@@ -147,6 +168,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendVerificationEmail = async () => {
+    if (!user) throw new Error('No user logged in');
+    if (user.emailVerified) throw new Error('Email already verified');
+    
+    try {
+      await sendEmailVerification(user);
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
@@ -154,7 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signUp,
     signOut,
-    resetPassword
+    resetPassword,
+    sendVerificationEmail,
+    isEmailVerified
   };
 
   return (
