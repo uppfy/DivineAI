@@ -394,7 +394,7 @@ export async function getBlogPostsByCategory(
 export async function getRelatedBlogPosts(
   category: BlogCategory,
   currentPostId: string,
-  limit: number = 3
+  limitCount: number = 3
 ): Promise<BlogPost[]> {
   try {
     const q = query(
@@ -403,7 +403,7 @@ export async function getRelatedBlogPosts(
       where('category', '==', category),
       where('id', '!=', currentPostId),
       orderBy('publishedAt', 'desc'),
-      limit(limit)
+      limit(limitCount)
     );
     
     const querySnapshot = await getDocs(q);
