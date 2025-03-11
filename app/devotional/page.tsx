@@ -72,8 +72,8 @@ const Page: NextPage = () => {
       const generateDevotional = async () => {
         try {
           setIsGeneratingDevotional(true);
-          // Call the API to generate today's devotional
-          const response = await fetch('/api/devotional');
+          // Call the API to generate today's devotional with token
+          const response = await fetch(`/api/devotional?token=${process.env.NEXT_PUBLIC_CRON_SECRET_TOKEN}`);
           if (!response.ok) {
             throw new Error('Failed to generate devotional');
           }

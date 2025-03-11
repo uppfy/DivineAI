@@ -28,18 +28,21 @@ Guidelines:
 
 Please produce only the JSON object, with no additional commentary or formatting.`;
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Get the URL from the request
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token');
+  
   // Verify cron job authentication
   const headersList = headers();
-  const authToken = headersList.get('Authorization');
   const isCronRequest = headersList.get('x-vercel-cron') === 'true';
   
-  // Check if this is a cron job request and validate the token
-  // Skip token validation during development or when called directly by Vercel cron
+  // Check if this is a cron job request or has a valid token
+  // Skip token validation during development
   const isValidRequest = 
     process.env.NODE_ENV === 'development' || 
     isCronRequest || 
-    authToken === `Bearer ${process.env.CRON_SECRET_TOKEN}`;
+    token === process.env.CRON_SECRET_TOKEN;
   
   if (!isValidRequest) {
     console.log('Unauthorized access attempt to devotional API');

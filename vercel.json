@@ -2,10 +2,7 @@
   "crons": [
     {
       "path": "/api/devotional",
-      "schedule": "0 21 * * *",
-      "headers": {
-        "Authorization": "Bearer ${CRON_SECRET_TOKEN}"
-      }
+      "schedule": "0 21 * * *"
     }
   ]
 } 
