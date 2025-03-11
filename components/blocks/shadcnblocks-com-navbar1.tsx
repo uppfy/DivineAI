@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Accordion,
   AccordionContent,
@@ -135,9 +135,16 @@ const Navbar1 = ({
   },
 }: Navbar1Props) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Determine if navbar should be sticky based on current path
+  const isSticky = pathname !== '/community';
+  const headerClassName = isSticky 
+    ? "sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm"
+    : "w-full border-b bg-white/80 backdrop-blur-sm";
 
   const handleNavigation = (url: string) => {
     setIsSheetOpen(false);
@@ -215,18 +222,40 @@ const Navbar1 = ({
   const renderMobileAuthButtons = () => {
     if (user) {
       return (
-        <div className="flex flex-col gap-2 mt-6 px-4">
+        <div className="flex flex-col gap-4 mt-6 px-4">
+          <div className="flex flex-col items-center pb-4 border-b border-gray-100">
+            <div className="relative w-20 h-20 mb-3 rounded-full overflow-hidden border-2 border-purple-200">
+              {profile?.avatarUrl ? (
+                <Image
+                  src={profile.avatarUrl}
+                  alt={profile.displayName || user.email || "User"}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-purple-100 text-purple-800">
+                  <User className="h-10 w-10" />
+                </div>
+              )}
+            </div>
+            <h3 className="font-medium text-gray-900">
+              {profile?.displayName || user.email?.split('@')[0] || "User"}
+            </h3>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </div>
+          
           <Button
-            variant="ghost"
-            className="w-full justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors"
+            variant="outline"
+            className="w-full justify-center py-6 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition-colors"
             onClick={() => handleNavigation('/profile')}
           >
             <User className="mr-2 h-5 w-5" />
-            Profile
+            View Profile
           </Button>
+          
           <Button
-            variant="ghost"
-            className="w-full justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors"
+            variant="outline"
+            className="w-full justify-center py-6 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-colors"
             onClick={handleSignOut}
           >
             <LogOut className="mr-2 h-5 w-5" />
@@ -256,7 +285,7 @@ const Navbar1 = ({
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
+    <header className={headerClassName}>
       {/* Desktop Navigation */}
       <nav className="container hidden h-16 items-center px-4 md:flex">
         <div className="flex-shrink-0">
