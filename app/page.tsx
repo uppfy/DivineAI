@@ -194,6 +194,10 @@ export default function Home() {
       {/* Daily Devotional Section */}
       <section className="py-16 bg-white">
         <div className="container max-w-4xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-[#6b21a8] mb-3">Daily Devotional</h2>
+            <p className="text-gray-600">Start your day with spiritual inspiration and guidance from God's Word.</p>
+          </div>
           <Card className="overflow-hidden border-t-4 border-t-[#6b21a8]">
             <CardContent className="p-8">
               {isLoadingDevotional ? (
