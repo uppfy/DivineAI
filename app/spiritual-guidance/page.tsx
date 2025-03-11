@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { BookmarkPlus, Share2, Loader2, Check, Copy, Heart } from "lucide-react";
+import { BookmarkPlus, Share2, Loader2, Check, Copy, HandHeart } from "lucide-react";
+import Image from "next/image";
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 interface BibleVerse {
@@ -34,11 +35,13 @@ export default function SpiritualGuidance() {
 
   const scrollToResponse = () => {
     if (responseRef.current) {
-      const yOffset = -20; // Add some padding from the top
-      const y = responseRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      // For mobile devices, we need to ensure we're accounting for any fixed headers
+      const headerOffset = window.innerWidth < 768 ? 80 : 20; // Larger offset on mobile
+      const elementPosition = responseRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       
       window.scrollTo({
-        top: y,
+        top: offsetPosition,
         behavior: 'smooth'
       });
     }
@@ -54,6 +57,11 @@ export default function SpiritualGuidance() {
         setShowResponse(true);
         // Clear the saved response
         localStorage.removeItem('guidanceResponse');
+        
+        // Add a small delay to ensure the component is fully rendered
+        setTimeout(() => {
+          scrollToResponse();
+        }, 100);
       } catch (err) {
         console.error('Error parsing saved response:', err);
       }
@@ -178,7 +186,7 @@ export default function SpiritualGuidance() {
                     </>
                   ) : (
                     <>
-                      <Heart className="w-4 h-4 mr-2" />
+                      <HandHeart className="w-4 h-4 mr-2" />
                       Receive Guidance
                     </>
                   )}

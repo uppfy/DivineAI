@@ -62,12 +62,12 @@ export default function AboutPage() {
               Your Journey to Spiritual Growth
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              DivineAI combines the timeless wisdom of scripture with modern technology to create a 
+              Divine Comfort combines the timeless wisdom of scripture with modern technology to create a 
               personalized and enriching faith experience.
             </p>
             <Button 
               className="bg-[#6b21a8] hover:bg-[#5b1b8f] text-lg px-8 py-6 h-auto"
-              onClick={() => router.push('/auth/signup')}
+              onClick={() => router.push('/sign-up')}
             >
               Begin Your Journey
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -83,7 +83,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-[#6b21a8] mb-6">Our Mission</h2>
             <p className="text-lg text-gray-600 leading-relaxed mb-8">
               We believe that everyone deserves access to meaningful spiritual guidance and 
-              support in their faith journey. DivineAI was created to provide personalized, 
+              support in their faith journey. Divine Comfort was created to provide personalized, 
               scripture-based insights and tools that help you grow closer to God, understand 
               His word more deeply, and find peace in His presence.
             </p>
@@ -189,7 +189,7 @@ export default function AboutPage() {
                         className="text-[#6b21a8] p-0 hover:text-[#5b1b8f]"
                         onClick={() => router.push('/spiritual-guidance')}
                       >
-                        Seek Guidance
+                        Get Spiritual Guidance
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
@@ -312,11 +312,11 @@ export default function AboutPage() {
                 Ready to Start Your Spiritual Journey?
               </h2>
               <p className="text-lg mb-8 opacity-90">
-                Join thousands of believers who have found guidance, peace, and deeper faith through DivineAI.
+                Join thousands of believers who have found guidance, peace, and deeper faith through Divine Comfort.
               </p>
               <Button 
                 className="bg-white text-[#6b21a8] hover:bg-gray-100 text-lg px-8 py-6 h-auto"
-                onClick={() => router.push('/auth/signup')}
+                onClick={() => router.push('/sign-up')}
               >
                 Get Started Now
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -385,7 +385,7 @@ export default function AboutPage() {
             </p>
             <Button 
               className="w-full bg-[#6b21a8] hover:bg-[#5b1b8f]"
-              onClick={() => router.push('/auth/signin')}
+              onClick={() => router.push('/sign-in')}
             >
               Sign In
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -395,7 +395,7 @@ export default function AboutPage() {
               <Button 
                 variant="link" 
                 className="text-[#6b21a8] p-0 hover:text-[#5b1b8f]"
-                onClick={() => router.push('/auth/signup')}
+                onClick={() => router.push('/sign-up')}
               >
                 Sign up
               </Button>

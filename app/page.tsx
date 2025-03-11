@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Book, Users, BookText, ArrowRight, PenLine, HandHeart, ChevronRight, Loader2 } from "lucide-react";
+import { Book, Users, BookText, ArrowRight, PenLine, HandHeart, ChevronRight, Loader2, UserPlus } from "lucide-react";
+import Image from "next/image";
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useCollection } from '@/hooks/useFirestore';
@@ -89,6 +90,33 @@ export default function Home() {
     }
   };
 
+  const features = [
+    {
+      title: "Spiritual Guidance",
+      description: "Receive personalized spiritual guidance based on your feelings and concerns.",
+      icon: <HandHeart className="h-8 w-8" />,
+      href: "/spiritual-guidance"
+    },
+    {
+      title: "Bible Study",
+      description: "Access structured lessons and guided plans.",
+      icon: <Book className="h-8 w-8" />,
+      href: "/bible-study"
+    },
+    {
+      title: "Journal",
+      description: "Write and reflect on your spiritual journey.",
+      icon: <BookText className="h-8 w-8" />,
+      href: "/journal"
+    },
+    {
+      title: "Community",
+      description: "Join prayer groups, share testimonies, request prayers.",
+      icon: <Users className="h-8 w-8" />,
+      href: "/community"
+    }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -124,8 +152,8 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <Heart className="w-5 h-5 mr-2 fill-white" />
-                  Seek Guidance
+                  <HandHeart className="h-4 w-4 mr-2" />
+                  Get Spiritual Guidance
                 </>
               )}
             </Button>
@@ -227,32 +255,7 @@ export default function Home() {
             Explore Our Faith-Based Features
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: <PenLine className="h-8 w-8" />,
-                title: "Spiritual Guidance",
-                description: "Find wisdom through scripture-based insights.",
-                href: "/spiritual-guidance"
-              },
-              {
-                icon: <Book className="h-8 w-8" />,
-                title: "Bible Study",
-                description: "Access structured lessons and guided plans.",
-                href: "/bible-study"
-              },
-              {
-                icon: <BookText className="h-8 w-8" />,
-                title: "Journal",
-                description: "Write and reflect on your spiritual journey.",
-                href: "/journal"
-              },
-              {
-                icon: <Users className="h-8 w-8" />,
-                title: "Community",
-                description: "Join prayer groups, share testimonies, request prayers.",
-                href: "/community"
-              },
-            ].map((feature, index) => (
+            {features.map((feature, index) => (
               <Card 
                 key={index} 
                 className="group hover:shadow-lg transition-shadow duration-200 cursor-pointer"
@@ -271,7 +274,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Button 
               className="bg-[#6b21a8] hover:bg-[#5b1b8f]"
-              onClick={() => router.push('/auth/signup')}
+              onClick={() => router.push('/sign-up')}
             >
               Sign Up Now
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -322,6 +325,30 @@ export default function Home() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-purple-900 to-purple-700 text-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">
+              Begin Your Spiritual Journey Today
+            </h2>
+            <p className="text-lg mb-8">
+              Join our community of believers seeking growth, wisdom, and deeper faith.
+            </p>
+            <Button 
+              asChild
+              size="lg" 
+              className="bg-white text-purple-900 hover:bg-gray-100"
+            >
+              <a href="/sign-up">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Sign Up Today
+              </a>
+            </Button>
           </div>
         </div>
       </section>

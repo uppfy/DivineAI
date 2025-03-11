@@ -16,7 +16,8 @@ import {
   Shield,
   Settings,
   HelpCircle,
-  ArrowRight
+  ArrowRight,
+  Info
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -29,16 +30,16 @@ export default function FAQPage() {
       title: "Getting Started",
       questions: [
         {
-          q: "What is DivineAI?",
-          a: "DivineAI is a spiritual companion app that combines scripture wisdom with modern technology to provide personalized faith experiences. It offers daily devotionals, Bible study plans, spiritual guidance, and a community platform for believers."
+          q: "What is Divine Comfort?",
+          a: "Divine Comfort is a spiritual companion app that combines scripture wisdom with modern technology to provide personalized faith experiences. It offers daily devotionals, Bible study plans, spiritual guidance, prayer communities, and more to support your faith journey."
         },
         {
           q: "How do I create an account?",
           a: "To create an account, click the 'Sign Up' button in the top right corner. You'll need to provide your email address and create a password. Once registered, you can personalize your profile and start your spiritual journey."
         },
         {
-          q: "Is DivineAI free to use?",
-          a: "Yes, DivineAI offers a free basic account with access to daily devotionals and community features. Premium features like advanced Bible study plans and spiritual guidance are available through our subscription plans."
+          q: "Is Divine Comfort free to use?",
+          a: "Yes, Divine Comfort offers a free basic account with access to daily devotionals and community features. Premium features like advanced Bible study plans and spiritual guidance are available through our subscription plans."
         }
       ]
     },
@@ -52,7 +53,7 @@ export default function FAQPage() {
         },
         {
           q: "Can I share devotionals with others?",
-          a: "Yes! Each devotional has a share button that allows you to share it with friends and family through various platforms or directly within the DivineAI community."
+          a: "Yes! Each devotional has a share button that allows you to share it with friends and family through various platforms or directly within the Divine Comfort community."
         }
       ]
     },
@@ -118,7 +119,7 @@ export default function FAQPage() {
               Frequently Asked Questions
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Find answers to common questions about DivineAI and your spiritual journey.
+              Find answers to common questions about Divine Comfort and your spiritual journey.
             </p>
             <div className="max-w-xl mx-auto relative">
               <Input

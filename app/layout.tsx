@@ -8,12 +8,21 @@ import { ProfileProvider } from '@/contexts/ProfileContext';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
 import VerificationBanner from '@/components/VerificationBanner';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Divine Comfort",
   description: "A place for spiritual growth and community",
+  icons: {
+    icon: [
+      {
+        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//digital-comfort-logo.svg",
+        type: "image/svg+xml",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +40,9 @@ export default function RootLayout({
               <div className="flex min-h-screen flex-col">
                 <Navbar1 />
                 <main className="flex-1">
-                  {children}
+                  <ProtectedRoute>
+                    {children}
+                  </ProtectedRoute>
                 </main>
                 <Footer />
               </div>

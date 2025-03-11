@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/devotional",
+      "schedule": "0 21 * * *"
+    }
+  ]
+} 
