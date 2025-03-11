@@ -139,4 +139,25 @@ export interface Notification extends BaseDocument {
 export type FirestoreDate = Timestamp | string;
 
 // Helper type for partial updates
-export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>; 
+export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// Blog related interfaces
+export type BlogCategory = 'General' | 'Spiritual Growth' | 'Bible Study' | 'Prayer' | 'Testimony' | 'Community';
+
+export interface BlogPost extends BaseDocument {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  authorId: string;
+  authorName: string;
+  featuredImageUrl: string;
+  category: BlogCategory;
+  tags: string[];
+  status: 'draft' | 'published';
+  publishedAt?: string;
+  metaDescription: string;
+  metaKeywords: string[];
+  views: number;
+  relatedPosts?: string[]; // Array of related blog post IDs
+} 

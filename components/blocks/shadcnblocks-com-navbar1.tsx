@@ -111,6 +111,10 @@ const Navbar1 = ({
       ],
     },
     {
+      title: "Blog",
+      url: "/blog",
+    },
+    {
       title: "Community",
       url: "/community"
     },

@@ -26,6 +26,8 @@ import {
   Comment,
   Notification,
   WithOptional,
+  BlogPost,
+  BlogCategory,
 } from '../types/database';
 
 import { validateUser, validateCommunity, validatePost, validateComment } from './validation';
@@ -38,6 +40,7 @@ export const COLLECTIONS = {
   POSTS: 'posts',
   COMMENTS: 'comments',
   NOTIFICATIONS: 'notifications',
+  BLOG_POSTS: 'blogPosts',
 } as const;
 
 // User Operations
@@ -287,6 +290,134 @@ export async function getPaginatedDocs<T extends { id: string }>(
     const lastDoc = items.length > 0 ? items[items.length - 1].id : null;
     
     return { items, lastDoc };
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+// Blog Post Operations
+export async function createBlogPost(data: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>): Promise<string> {
+  try {
+    const blogPostRef = doc(collection(db, COLLECTIONS.BLOG_POSTS));
+    const now = new Date().toISOString();
+    
+    // Generate slug from title if not provided
+    const slug = data.slug || data.title.toLowerCase()
+      .replace(/[^\w\s]/gi, '')
+      .replace(/\s+/g, '-');
+    
+    // Set default category if not provided
+    const category = data.category || 'General';
+    
+    await setDoc(blogPostRef, {
+      ...data,
+      id: blogPostRef.id,
+      slug,
+      category,
+      createdAt: now,
+      updatedAt: now,
+      views: 0,
+      status: data.status || 'draft',
+    });
+    
+    return blogPostRef.id;
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function updateBlogPost(id: string, data: Partial<BlogPost>): Promise<void> {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.BLOG_POSTS, id), {
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function getBlogPost(id: string): Promise<BlogPost | null> {
+  try {
+    const blogPostDoc = await getDoc(doc(db, COLLECTIONS.BLOG_POSTS, id));
+    return blogPostDoc.exists() ? blogPostDoc.data() as BlogPost : null;
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  try {
+    const q = query(collection(db, COLLECTIONS.BLOG_POSTS), where('slug', '==', slug), limit(1));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+    
+    return querySnapshot.docs[0].data() as BlogPost;
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function getPublishedBlogPosts(
+  pagination: PaginationParams = { limit: 10, orderByField: 'publishedAt', orderDirection: 'desc' }
+): Promise<{ items: BlogPost[]; lastDoc: string | null }> {
+  try {
+    const constraints: QueryConstraint[] = [
+      where('status', '==', 'published'),
+    ];
+    
+    return getPaginatedDocs<BlogPost>(COLLECTIONS.BLOG_POSTS, constraints, pagination);
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function getBlogPostsByCategory(
+  category: BlogCategory,
+  pagination: PaginationParams = { limit: 10, orderByField: 'publishedAt', orderDirection: 'desc' }
+): Promise<{ items: BlogPost[]; lastDoc: string | null }> {
+  try {
+    const constraints: QueryConstraint[] = [
+      where('status', '==', 'published'),
+      where('category', '==', category),
+    ];
+    
+    return getPaginatedDocs<BlogPost>(COLLECTIONS.BLOG_POSTS, constraints, pagination);
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function getRelatedBlogPosts(
+  category: BlogCategory,
+  currentPostId: string,
+  limit: number = 3
+): Promise<BlogPost[]> {
+  try {
+    const q = query(
+      collection(db, COLLECTIONS.BLOG_POSTS),
+      where('status', '==', 'published'),
+      where('category', '==', category),
+      where('id', '!=', currentPostId),
+      orderBy('publishedAt', 'desc'),
+      limit(limit)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as BlogPost);
+  } catch (error) {
+    throw handleFirebaseError(error);
+  }
+}
+
+export async function incrementBlogPostViews(id: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.BLOG_POSTS, id), {
+      views: increment(1),
+    });
   } catch (error) {
     throw handleFirebaseError(error);
   }
