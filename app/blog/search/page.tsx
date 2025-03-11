@@ -22,7 +22,7 @@ type Props = {
   };
 };
 
-async function searchBlogPosts(query: string): Promise<BlogPost[]> {
+async function searchBlogPosts(searchTerm: string): Promise<BlogPost[]> {
   try {
     // This is a simple search implementation that checks if the query is in the title, content, or tags
     // For a more robust search, consider using a dedicated search service like Algolia
@@ -37,12 +37,12 @@ async function searchBlogPosts(query: string): Promise<BlogPost[]> {
     const allPosts = querySnapshot.docs.map(doc => doc.data() as BlogPost);
     
     // Filter posts that match the search query
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+    const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
     
     return allPosts.filter(post => {
-      const titleMatch = post.title.toLowerCase().includes(query.toLowerCase());
-      const contentMatch = post.content.toLowerCase().includes(query.toLowerCase());
-      const excerptMatch = post.excerpt.toLowerCase().includes(query.toLowerCase());
+      const titleMatch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const contentMatch = post.content.toLowerCase().includes(searchTerm.toLowerCase());
+      const excerptMatch = post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
       
       // Check if any of the search terms match any of the tags
       const tagMatch = post.tags.some(tag => 
