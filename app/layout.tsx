@@ -13,13 +13,60 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Divine Comfort",
-  description: "A place for spiritual growth and community",
+  title: "Divine Comfort | Spiritual Growth and Community",
+  description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
+  keywords: "spiritual growth, Christian community, daily devotionals, Bible study, spiritual guidance, faith journey, prayer, Christian resources",
+  authors: [{ name: "Divine Comfort Team" }],
+  creator: "Divine Comfort",
+  publisher: "Divine Comfort",
+  formatDetection: {
+    email: false,
+    telephone: false,
+  },
+  metadataBase: new URL("https://divine-comfort.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Divine Comfort | Spiritual Growth and Community",
+    description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
+    url: "https://divine-comfort.com",
+    siteName: "Divine Comfort",
+    images: [
+      {
+        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//Divine%20Comfort%20featured%20image.png",
+        width: 1200,
+        height: 630,
+        alt: "Divine Comfort - A place for spiritual growth and community",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Divine Comfort | Spiritual Growth and Community",
+    description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
+    images: ["https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//Divine%20Comfort%20featured%20image.png"],
+  },
   icons: {
     icon: [
       {
-        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//digital-comfort-logo.svg",
-        type: "image/svg+xml",
+        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//divine%20comfort%20favicon.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: [
+      {
+        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//divine%20comfort%20favicon.png",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//divine%20comfort%20favicon.png",
+        type: "image/png",
+        sizes: "180x180",
       },
     ],
   },
