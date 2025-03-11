@@ -1,0 +1,17 @@
+{
+  "name": "admin-scripts",
+  "version": "1.0.0",
+  "description": "Admin scripts for Divine Comfort application",
+  "main": "set-admin-user.js",
+  "scripts": {
+    "set-admin": "node set-admin-user.js"
+  },
+  "keywords": ["admin", "firestore", "firebase"],
+  "author": "Divine Comfort Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "firebase-admin": "^11.11.0"
+  }
+} 

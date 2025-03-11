@@ -97,6 +97,24 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();  // Only admins can write
     }
 
+    // Blog Categories collection
+    match /blogCategories/{categoryId} {
+      allow read: if true;  // Allow public read access
+      allow create, update, delete: if isAdmin();  // Only admins can write
+    }
+
+    // Blog Tags collection
+    match /blogTags/{tagId} {
+      allow read: if true;  // Allow public read access
+      allow create, update, delete: if isAdmin();  // Only admins can write
+    }
+
+    // Blog Authors collection
+    match /blogAuthors/{authorId} {
+      allow read: if true;  // Allow public read access
+      allow create, update, delete: if isAdmin();  // Only admins can write
+    }
+
     // Comments collection
     match /comments/{commentId} {
       // Allow public read access to comments
