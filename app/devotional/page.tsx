@@ -41,12 +41,54 @@ const Page: NextPage = () => {
   const [insights, setInsights] = useState<string | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [isGeneratingDevotional, setIsGeneratingDevotional] = useState(false);
+
+  // Get today's date in YYYY-MM-DD format for the timezone
+  const today = new Date();
+  const dateId = today.toLocaleDateString('en-US', {
+    timeZone: 'Africa/Nairobi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split('/').reverse().join('-');
 
   // Fetch recent devotionals from Firestore
   const { data: devotionals, loading: isLoading, error } = useCollection<Devotional>(
     'devotionals',
     [orderBy('dateId', 'desc'), limit(3)]
   );
+
+  // Client-side fallback to generate devotional if none exists for today
+  useEffect(() => {
+    // Check if today's devotional exists
+    const todaysDevotional = devotionals?.find(d => d.dateId === dateId);
+    
+    // Only attempt to generate if:
+    // 1. We're not already loading or generating
+    // 2. We've finished the initial loading
+    // 3. There's no error
+    // 4. No devotional was found for today
+    if (!isLoading && !error && !todaysDevotional && !isGeneratingDevotional) {
+      const generateDevotional = async () => {
+        try {
+          setIsGeneratingDevotional(true);
+          // Call the API to generate today's devotional
+          const response = await fetch('/api/devotional');
+          if (!response.ok) {
+            throw new Error('Failed to generate devotional');
+          }
+          // No need to handle the response - the useCollection hook will
+          // automatically update with the new data
+        } catch (err) {
+          console.error('Error generating devotional:', err);
+        } finally {
+          setIsGeneratingDevotional(false);
+        }
+      };
+
+      generateDevotional();
+    }
+  }, [isLoading, error, devotionals, dateId, isGeneratingDevotional]);
 
   useEffect(() => {
     if (devotionals && devotionals.length > 0) {

@@ -30,6 +30,7 @@ export default function Home() {
   const [feeling, setFeeling] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGeneratingDevotional, setIsGeneratingDevotional] = useState(false);
 
   // Get today's date in YYYY-MM-DD format for the timezone
   const today = new Date();
@@ -47,6 +48,35 @@ export default function Home() {
   );
 
   const devotional = devotionals?.[0];
+
+  // Client-side fallback to generate devotional if none exists for today
+  useEffect(() => {
+    // Only attempt to generate if:
+    // 1. We're not already loading or generating
+    // 2. We've finished the initial loading
+    // 3. There's no error
+    // 4. No devotional was found for today
+    if (!isLoadingDevotional && !devotionalError && !devotional && !isGeneratingDevotional) {
+      const generateDevotional = async () => {
+        try {
+          setIsGeneratingDevotional(true);
+          // Call the API to generate today's devotional
+          const response = await fetch('/api/devotional');
+          if (!response.ok) {
+            throw new Error('Failed to generate devotional');
+          }
+          // No need to handle the response - the useCollection hook will
+          // automatically update with the new data
+        } catch (err) {
+          console.error('Error generating devotional:', err);
+        } finally {
+          setIsGeneratingDevotional(false);
+        }
+      };
+
+      generateDevotional();
+    }
+  }, [isLoadingDevotional, devotionalError, devotional, isGeneratingDevotional]);
 
   const handleSubmit = async () => {
     if (!feeling.trim()) return;

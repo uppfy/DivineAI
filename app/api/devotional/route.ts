@@ -2,6 +2,7 @@ import { OpenAI } from 'openai';
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { headers } from 'next/headers';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -28,6 +29,23 @@ Guidelines:
 Please produce only the JSON object, with no additional commentary or formatting.`;
 
 export async function GET() {
+  // Verify cron job authentication
+  const headersList = headers();
+  const authToken = headersList.get('Authorization');
+  const isCronRequest = headersList.get('x-vercel-cron') === 'true';
+  
+  // Check if this is a cron job request and validate the token
+  // Skip token validation during development or when called directly by Vercel cron
+  const isValidRequest = 
+    process.env.NODE_ENV === 'development' || 
+    isCronRequest || 
+    authToken === `Bearer ${process.env.CRON_SECRET_TOKEN}`;
+  
+  if (!isValidRequest) {
+    console.log('Unauthorized access attempt to devotional API');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: 'OpenAI API key not configured' },
@@ -62,6 +80,8 @@ export async function GET() {
       // Return existing devotional
       return NextResponse.json(devotionalDoc.data());
     }
+
+    console.log(`Generating new devotional for ${dateId}`);
 
     // Generate new devotional content from OpenAI
     const completion = await openai.chat.completions.create({
@@ -113,7 +133,8 @@ export async function GET() {
 
       // Store in Firestore
       await devotionalRef.set(devotionalWithMetadata);
-
+      
+      console.log(`Successfully created devotional for ${dateId}`);
       return NextResponse.json(devotionalWithMetadata);
 
     } catch (parseError) {
