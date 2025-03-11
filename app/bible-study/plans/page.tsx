@@ -111,8 +111,8 @@ export default function BibleStudyPlans() {
               {plans.map((plan) => {
                 const { status, progress } = getPlanStatus(plan.checklist);
                 return (
-                  <Card
-                    key={plan.id}
+                <Card
+                  key={plan.id}
                     className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                     onClick={() => router.push(`/bible-study/plan/${plan.id}`)}
                   >
@@ -122,7 +122,7 @@ export default function BibleStudyPlans() {
                           <div className="space-y-1">
                             <h3 className="font-semibold text-[#6b21a8] line-clamp-1">
                               {plan.title}
-                            </h3>
+                      </h3>
                             <p className="text-sm text-gray-500 line-clamp-2">
                               {plan.description}
                             </p>
@@ -130,7 +130,7 @@ export default function BibleStudyPlans() {
                           {status === 'completed' && (
                             <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                           )}
-                        </div>
+                    </div>
 
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
@@ -138,25 +138,25 @@ export default function BibleStudyPlans() {
                             <span className="text-[#6b21a8] font-medium">{progress}%</span>
                           </div>
                           <Progress value={progress} className="h-2" />
-                        </div>
+                    </div>
 
-                        <div className="pt-2 flex items-center justify-between text-sm">
+                    <div className="pt-2 flex items-center justify-between text-sm">
                           <span className="text-gray-500 flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
                             {new Date(plan.createdAt).toLocaleDateString()}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[#6b21a8] hover:bg-[#6b21a8] hover:text-white -mr-2"
-                          >
-                            Continue
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                          </Button>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[#6b21a8] hover:bg-[#6b21a8] hover:text-white -mr-2"
+                      >
+                        Continue
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </CardContent>
+                </Card>
                 );
               })}
             </div>

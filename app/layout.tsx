@@ -14,14 +14,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Divine Comfort",
   description: "A place for spiritual growth and community",
-  icons: {
-    icon: [
-      {
-        url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//divine%20comfort%20logo%20purple.svg",
-        type: "image/svg+xml",
-      }
-    ],
-  },
 };
 
 export default function RootLayout({

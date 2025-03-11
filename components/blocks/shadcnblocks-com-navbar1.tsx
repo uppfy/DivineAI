@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { useState } from "react";
-
+import { useRouter } from 'next/navigation';
 import {
   Accordion,
   AccordionContent,
@@ -35,6 +35,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface MenuItem {
   title: string;
@@ -131,15 +134,23 @@ const Navbar1 = ({
     signup: { text: "Get Started", url: "/signup" },
   },
 }: Navbar1Props) => {
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  const handleNavigation = (url: string) => {
+    setIsSheetOpen(false);
+    router.push(url);
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut();
+      setIsSheetOpen(false);
+      router.push('/');
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
     }
   };
 
@@ -201,6 +212,49 @@ const Navbar1 = ({
     );
   };
 
+  const renderMobileAuthButtons = () => {
+    if (user) {
+      return (
+        <div className="flex flex-col gap-2 mt-6 px-4">
+          <Button
+            variant="ghost"
+            className="w-full justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors"
+            onClick={() => handleNavigation('/profile')}
+          >
+            <User className="mr-2 h-5 w-5" />
+            Profile
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors"
+            onClick={handleSignOut}
+          >
+            <LogOut className="mr-2 h-5 w-5" />
+            Sign out
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-3 mt-6 px-4">
+        <Button
+          variant="outline"
+          className="w-full bg-white hover:bg-purple-50 hover:text-purple-700 border-2 transition-colors"
+          onClick={() => handleNavigation('/sign-in')}
+        >
+          Sign in
+        </Button>
+        <Button
+          className="w-full bg-purple-700 hover:bg-purple-800 text-white transition-colors"
+          onClick={() => handleNavigation('/sign-up')}
+        >
+          Get started
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
       {/* Desktop Navigation */}
@@ -247,10 +301,14 @@ const Navbar1 = ({
               <Menu className="size-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent className="overflow-y-auto">
+          <SheetContent className="w-[300px] sm:w-[350px]">
             <SheetHeader>
               <SheetTitle>
-                <Link href={logo.url} className="flex items-center justify-center">
+                <Link 
+                  href={logo.url} 
+                  className="flex items-center justify-center"
+                  onClick={() => setIsSheetOpen(false)}
+                >
                   <Image
                     src={logo.src}
                     alt={logo.alt}
@@ -262,62 +320,49 @@ const Navbar1 = ({
                 </Link>
               </SheetTitle>
             </SheetHeader>
-            <div className="my-6 flex flex-col gap-6">
-              <Accordion
-                type="single"
-                collapsible
-                className="flex w-full flex-col gap-4"
-              >
-                {menu.map((item) => renderMobileMenuItem(item))}
-              </Accordion>
-              <div className="border-t py-4">
-                <div className="grid grid-cols-2 justify-start">
-                  {mobileExtraLinks.map((link, idx) => (
-                    <a
-                      key={idx}
-                      className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
-                      href={link.url}
-                    >
-                      {link.name}
-                    </a>
+            <ScrollArea className="h-[calc(100vh-8rem)]">
+              <div className="mt-8">
+                <nav className="flex flex-col space-y-4">
+                  {menu.map((item, index) => (
+                    <div key={index}>
+                      {item.items ? (
+                        <Collapsible>
+                          <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium hover:bg-purple-50 hover:text-purple-700 rounded-md transition-colors">
+                            {item.title}
+                            <ChevronDown className="h-4 w-4" />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="px-4 py-2">
+                            {item.items.map((subItem, subIndex) => (
+                              <Link
+                                key={subIndex}
+                                href={subItem.url}
+                                className="flex items-center gap-2 py-2 text-sm text-gray-600 hover:text-purple-700 transition-colors"
+                                onClick={() => setIsSheetOpen(false)}
+                              >
+                                {subItem.icon}
+                                <div>
+                                  <div className="font-medium">{subItem.title}</div>
+                                  <div className="text-xs text-gray-500">{subItem.description}</div>
+                                </div>
+                              </Link>
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                        <Link
+                          href={item.url}
+                          className="block px-4 py-2 text-sm font-medium hover:bg-purple-50 hover:text-purple-700 rounded-md transition-colors"
+                          onClick={() => setIsSheetOpen(false)}
+                        >
+                          {item.title}
+                        </Link>
+                      )}
+                    </div>
                   ))}
-                </div>
+                </nav>
               </div>
-              <div className="py-6">
-                {user ? (
-                  <>
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsSheetOpen(false)}
-                      className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full mt-2 text-base font-semibold leading-7 text-red-600 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 text-center"
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/sign-in"
-                      className="block text-base font-semibold leading-7 text-gray-900 border rounded-lg px-4 py-2 hover:bg-gray-50 text-center"
-                    >
-                      Sign in
-                    </Link>
-                    <Link
-                      href="/sign-up"
-                      className="-mx-3 block px-3 py-2.5 text-base font-semibold leading-7 text-white bg-[#6b21a8] hover:bg-[#581c87] rounded-lg text-center mt-2"
-                    >
-                      Get started
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
+              {renderMobileAuthButtons()}
+            </ScrollArea>
           </SheetContent>
         </Sheet>
       </nav>

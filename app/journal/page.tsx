@@ -308,11 +308,11 @@ export default function Journal() {
     <div className="min-h-screen py-8 bg-gradient-to-b from-purple-50 to-white">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
-          <Breadcrumb
-            items={[
-              { title: "Home", href: "/" },
-              { title: "Journal", href: "/journal", isCurrentPage: true }
-            ]}
+            <Breadcrumb
+              items={[
+                { title: "Home", href: "/" },
+                { title: "Journal", href: "/journal", isCurrentPage: true }
+              ]}
             description="Record your spiritual journey and prayers."
           />
 

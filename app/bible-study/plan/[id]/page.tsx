@@ -40,7 +40,7 @@ export default function StudyPlanPage({ params }: PageProps) {
     try {
       await updateProgress(params.id, newChecklist);
       toast.success("Progress updated successfully");
-    } catch (err) {
+      } catch (err) {
       console.error('Error updating progress:', err);
       toast.error("Failed to update progress");
     }
@@ -223,19 +223,19 @@ export default function StudyPlanPage({ params }: PageProps) {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-semibold text-[#6b21a8] mb-2">
-                        {currentStudy.title}
+                      {currentStudy.title}
                       </h2>
-                      <p className="text-gray-600">{currentStudy.description}</p>
+                    <p className="text-gray-600">{currentStudy.description}</p>
                     </div>
 
                     <div className="bg-purple-50 rounded-xl p-4">
                       <h3 className="font-medium text-[#6b21a8] mb-2">Scripture Reference</h3>
-                      <p className="text-gray-700">{currentStudy.scripture_reference}</p>
-                    </div>
+                    <p className="text-gray-700">{currentStudy.scripture_reference}</p>
+                  </div>
 
                     <div className="space-y-4">
                       <h3 className="font-medium text-[#6b21a8]">Study Steps</h3>
-                      {currentStudy.checklist.map((step, index) => (
+                    {currentStudy.checklist.map((step, index) => (
                         <div
                           key={index}
                           className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors"
@@ -251,7 +251,7 @@ export default function StudyPlanPage({ params }: PageProps) {
                           >
                             <CheckCircle2 className="h-6 w-6" />
                           </Button>
-                          <div>
+                            <div>
                             <h4 className="font-medium text-gray-900">{step.heading}</h4>
                             <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                           </div>

@@ -676,8 +676,13 @@ const CommunityPage = () => {
       {/* Mobile Category Selection Dialog */}
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
         <DialogContent className="sm:max-w-[500px] p-0">
+          <DialogHeader>
+            <DialogTitle>What would you like to share?</DialogTitle>
+            <DialogDescription id="dialog-description" className="sr-only">
+              Select a category for your community post
+            </DialogDescription>
+          </DialogHeader>
           <div className="p-4 space-y-2">
-            <h3 className="text-lg font-semibold text-center mb-4">What would you like to share?</h3>
             <button
               onClick={() => handleMobileCategorySelect('prayer')}
               className="w-full flex items-center gap-3 p-4 hover:bg-purple-50 rounded-lg transition-colors"
