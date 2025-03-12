@@ -29,33 +29,21 @@ Guidelines:
 Please produce only the JSON object, with no additional commentary or formatting.`;
 
 export async function GET(request: Request) {
-  // Get the URL from the request
-  const url = new URL(request.url);
-  const token = url.searchParams.get('token');
-  
-  // Verify cron job authentication
+  // Verify this is a Vercel cron job
   const headersList = headers();
   const isCronRequest = headersList.get('x-vercel-cron') === 'true';
   
-  // Enhanced logging for debugging
-  console.log('Request headers:', {
+  // Log headers for debugging
+  console.log('Cron endpoint called with headers:', {
     'x-vercel-cron': headersList.get('x-vercel-cron'),
     'user-agent': headersList.get('user-agent')
   });
-  console.log('Environment:', {
-    'NODE_ENV': process.env.NODE_ENV,
-    'Has CRON_SECRET_TOKEN': !!process.env.CRON_SECRET_TOKEN
-  });
   
-  // Check if this is a cron job request or has a valid token
-  // Skip token validation during development
-  const isValidRequest = 
-    process.env.NODE_ENV === 'development' || 
-    isCronRequest || 
-    token === process.env.CRON_SECRET_TOKEN;
-  
-  if (!isValidRequest) {
-    console.log('Unauthorized access attempt to devotional API');
+  // For cron endpoints, we'll be more permissive with authentication
+  // We'll trust Vercel's infrastructure to secure the cron job
+  // But we'll still check the x-vercel-cron header as a basic safeguard
+  if (!isCronRequest && process.env.NODE_ENV !== 'development') {
+    console.log('Unauthorized access attempt to devotional cron API');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -91,6 +79,7 @@ export async function GET(request: Request) {
 
     if (devotionalDoc.exists) {
       // Return existing devotional
+      console.log(`Devotional for ${dateId} already exists`);
       return NextResponse.json(devotionalDoc.data());
     }
 

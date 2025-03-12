@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/devotional",
+      "path": "/api/devotional/cron",
       "schedule": "0 21 * * *"
     }
   ]
