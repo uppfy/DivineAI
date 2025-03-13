@@ -35,7 +35,8 @@ export async function GET(request: Request) {
   
   // Verify cron job authentication
   const headersList = headers();
-  const isCronRequest = headersList.get('x-vercel-cron') === 'true';
+  const userAgent = headersList.get('user-agent') || '';
+  const isCronRequest = userAgent.includes('vercel-cron');
   
   // Enhanced logging for debugging
   console.log('Request headers:', {
