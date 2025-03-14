@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
@@ -43,11 +43,14 @@ const formats = [
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
   const [mounted, setMounted] = useState(false);
   const [editorValue, setEditorValue] = useState(value);
+  const quillRef = useRef<any>(null);
 
   // Initialize Quill custom formats for verse and quote
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const Quill = require('react-quill').Quill;
+    if (typeof window !== 'undefined' && quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      // Store the editor instance in window for custom buttons to access
+      (window as any).quillInstance = editor;
       
       // Add custom button handlers after Quill is loaded
       const toolbar = document.querySelector('.ql-toolbar');
@@ -62,10 +65,10 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           toolbar.appendChild(verseButton);
           
           verseButton.addEventListener('click', () => {
-            const range = (window as any).quillInstance.getSelection();
+            const range = editor.getSelection();
             if (range) {
               const text = '[verse]Insert Bible verse here[/verse]';
-              (window as any).quillInstance.insertText(range.index, text);
+              editor.insertText(range.index, text);
             }
           });
         }
@@ -79,10 +82,10 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           toolbar.appendChild(quoteButton);
           
           quoteButton.addEventListener('click', () => {
-            const range = (window as any).quillInstance.getSelection();
+            const range = editor.getSelection();
             if (range) {
               const text = '[quote]Insert quote here[/quote]';
-              (window as any).quillInstance.insertText(range.index, text);
+              editor.insertText(range.index, text);
             }
           });
         }
@@ -107,11 +110,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           modules={modules}
           formats={formats}
           placeholder={placeholder || "Write your content here..."}
-          ref={(el) => {
-            if (el) {
-              (window as any).quillInstance = el.getEditor();
-            }
-          }}
+          ref={quillRef}
         />
       )}
       <style jsx global>{`
