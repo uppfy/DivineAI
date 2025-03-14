@@ -66,7 +66,7 @@ export default function NewBlogPostPage() {
         category,
         tags,
         status,
-        publishedAt: status === 'published' ? new Date().toISOString() : null,
+        publishedAt: status === 'published' ? new Date().toISOString() : undefined,
         metaDescription,
         metaKeywords,
       };

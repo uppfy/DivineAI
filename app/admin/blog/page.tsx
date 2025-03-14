@@ -174,7 +174,7 @@ export default function AdminBlogPage() {
   const handlePublishToggle = async (post: BlogPost) => {
     try {
       const newStatus = post.status === 'published' ? 'draft' : 'published';
-      const publishedAt = newStatus === 'published' ? new Date().toISOString() : post.publishedAt;
+      const publishedAt = newStatus === 'published' ? new Date().toISOString() : undefined;
       
       await updateDoc(doc(db, 'blogPosts', post.id), {
         status: newStatus,
