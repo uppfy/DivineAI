@@ -5,62 +5,37 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { createBlogPost } from '@/lib/db';
-import { BlogPost, BlogCategory } from '@/types/database';
+import { BlogPost } from '@/types/database';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, ArrowLeft, Plus, X } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AlertTriangle, ArrowLeft, Save, Eye } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import RichTextEditor from '@/components/blog/RichTextEditor';
+import ImageUploader from '@/components/blog/ImageUploader';
+import SeoSettings from '@/components/blog/SeoSettings';
+import TagManager from '@/components/blog/TagManager';
+import CategorySelector from '@/components/blog/CategorySelector';
 
 export default function NewBlogPostPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState('');
-  const [category, setCategory] = useState<BlogCategory>('General');
+  const [category, setCategory] = useState('spiritual-growth');
   const [metaDescription, setMetaDescription] = useState('');
   const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState('');
-  const [currentKeyword, setCurrentKeyword] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   
   const { user, isAdmin } = useAuth();
   const router = useRouter();
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
-      setCurrentTag('');
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
-  };
-
-  const handleAddKeyword = () => {
-    if (currentKeyword.trim() && !metaKeywords.includes(currentKeyword.trim())) {
-      setMetaKeywords([...metaKeywords, currentKeyword.trim()]);
-      setCurrentKeyword('');
-    }
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setMetaKeywords(metaKeywords.filter(k => k !== keyword));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'published' = 'draft') => {
     e.preventDefault();
     
     if (!title || !content || !excerpt || !featuredImageUrl) {
@@ -88,9 +63,11 @@ export default function NewBlogPostPage() {
         authorId: user?.uid || '',
         authorName: user?.displayName || '',
         featuredImageUrl,
-        category,
+        categoryId: category,
+        categoryName: '', // This will be filled in by the server
         tags,
-        status: 'draft',
+        status,
+        publishedAt: status === 'published' ? new Date().toISOString() : null,
         metaDescription,
         metaKeywords,
       };
@@ -99,7 +76,7 @@ export default function NewBlogPostPage() {
       
       toast({
         title: 'Success',
-        description: 'Blog post created successfully',
+        description: `Blog post ${status === 'published' ? 'published' : 'saved as draft'} successfully`,
         variant: 'default',
       });
       
@@ -131,21 +108,32 @@ export default function NewBlogPostPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex items-center mb-8">
-        <Button variant="ghost" size="icon" asChild className="mr-4">
-          <Link href="/admin/blog">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Create New Blog Post</h1>
-          <p className="text-gray-600">Add a new blog post to your website</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" asChild className="mr-4">
+            <Link href="/admin/blog">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Create New Blog Post</h1>
+            <p className="text-gray-600">Add a new blog post to your website</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPreviewMode(!previewMode)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            {previewMode ? 'Edit Mode' : 'Preview'}
+          </Button>
         </div>
       </div>
       
       <Separator className="my-6" />
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => handleSubmit(e)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <Card>
@@ -181,221 +169,101 @@ export default function NewBlogPostPage() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
-                  <div className="text-xs text-gray-500 mb-2">
-                    <p>Use [verse]...[/verse] to format Bible verses</p>
-                    <p>Use [quote]...[/quote] to format quotes</p>
-                  </div>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Enter blog post content"
-                    required
-                    rows={15}
-                    className="font-mono"
-                  />
+                  {previewMode ? (
+                    <div 
+                      className="prose prose-lg max-w-none border rounded-md p-4"
+                      dangerouslySetInnerHTML={{ 
+                        __html: formatBlogContent(content) 
+                      }}
+                    />
+                  ) : (
+                    <RichTextEditor
+                      value={content}
+                      onChange={setContent}
+                      placeholder="Enter blog post content"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Featured Image</CardTitle>
-                <CardDescription>
-                  Add a featured image for your blog post
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="featuredImageUrl">Image URL *</Label>
-                  <Input
-                    id="featuredImageUrl"
-                    value={featuredImageUrl}
-                    onChange={(e) => setFeaturedImageUrl(e.target.value)}
-                    placeholder="Enter URL for featured image"
-                    required
-                  />
-                </div>
-                
-                {featuredImageUrl && (
-                  <div className="mt-4 border rounded-md p-2">
-                    <p className="text-sm text-gray-500 mb-2">Preview:</p>
-                    <div className="relative h-40 w-full rounded overflow-hidden">
-                      <img 
-                        src={featuredImageUrl} 
-                        alt="Featured image preview" 
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ImageUploader
+              value={featuredImageUrl}
+              onChange={setFeaturedImageUrl}
+              label="Featured Image URL *"
+            />
           </div>
           
           <div className="space-y-8">
+            <SeoSettings
+              title={title}
+              metaDescription={metaDescription}
+              metaKeywords={metaKeywords}
+              onTitleChange={setTitle}
+              onDescriptionChange={setMetaDescription}
+              onKeywordsChange={setMetaKeywords}
+            />
+            
+            <CategorySelector
+              value={category}
+              onChange={setCategory}
+            />
+            
+            <TagManager
+              tags={tags}
+              onChange={setTags}
+            />
+            
             <Card>
               <CardHeader>
-                <CardTitle>Blog Settings</CardTitle>
+                <CardTitle>Publishing</CardTitle>
                 <CardDescription>
-                  Configure settings for your blog post
+                  Save or publish your blog post
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select 
-                    value={category} 
-                    onValueChange={(value) => setCategory(value as BlogCategory)}
+                <div className="flex flex-col gap-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={loading}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="General">General</SelectItem>
-                      <SelectItem value="Spiritual Growth">Spiritual Growth</SelectItem>
-                      <SelectItem value="Bible Study">Bible Study</SelectItem>
-                      <SelectItem value="Prayer">Prayer</SelectItem>
-                      <SelectItem value="Testimony">Testimony</SelectItem>
-                      <SelectItem value="Community">Community</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="tags"
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      placeholder="Add a tag"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleAddTag}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save as Draft
+                  </Button>
                   
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {tags.map((tag) => (
-                        <div 
-                          key={tag} 
-                          className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <Button 
+                    type="button" 
+                    variant="default"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    disabled={loading}
+                    onClick={(e) => handleSubmit(e, 'published')}
+                  >
+                    Publish Now
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>SEO Settings</CardTitle>
-                <CardDescription>
-                  Optimize your blog post for search engines
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Meta Description</Label>
-                  <Textarea
-                    id="metaDescription"
-                    value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value)}
-                    placeholder="Enter meta description for SEO"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="metaKeywords">Meta Keywords</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="metaKeywords"
-                      value={currentKeyword}
-                      onChange={(e) => setCurrentKeyword(e.target.value)}
-                      placeholder="Add a keyword"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddKeyword();
-                        }
-                      }}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleAddKeyword}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {metaKeywords.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {metaKeywords.map((keyword) => (
-                        <div 
-                          key={keyword} 
-                          className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm"
-                        >
-                          {keyword}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveKeyword(keyword)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="flex justify-end gap-4">
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => router.push('/admin/blog')}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-purple-700 hover:bg-purple-800"
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create Blog Post'}
-              </Button>
-            </div>
           </div>
         </div>
       </form>
     </div>
   );
+}
+
+// Helper function to format blog content with special styling for Bible verses and quotes
+function formatBlogContent(content: string): string {
+  // Format Bible verses (assumed format: [verse]Content[/verse])
+  content = content.replace(
+    /\[verse\](.*?)\[\/verse\]/g,
+    '<div class="my-6 p-4 bg-amber-50 border-l-4 border-amber-500 italic text-gray-700">$1</div>'
+  );
+  
+  // Format quotes (assumed format: [quote]Content[/quote])
+  content = content.replace(
+    /\[quote\](.*?)\[\/quote\]/g,
+    '<blockquote class="my-6 p-4 border-l-4 border-gray-300 bg-gray-50 italic">$1</blockquote>'
+  );
+  
+  return content;
 } 

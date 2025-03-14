@@ -12,15 +12,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, ArrowLeft, Plus, X, Loader2 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AlertTriangle, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+
+// Import our new components
+import dynamic from 'next/dynamic';
+import ImageUploader from '@/components/blog/ImageUploader';
+import SeoSettings from '@/components/blog/SeoSettings';
+import CategorySelector from '@/components/blog/CategorySelector';
+import TagManager from '@/components/blog/TagManager';
+
+// Dynamically import RichTextEditor to avoid SSR issues
+const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), {
+  ssr: false,
+  loading: () => <div className="h-64 w-full border rounded-md flex items-center justify-center bg-gray-50">
+    <Loader2 className="h-8 w-8 text-gray-300 animate-spin" />
+  </div>
+});
 
 type Props = {
   params: {
@@ -37,11 +45,10 @@ export default function EditBlogPostPage({ params }: Props) {
   const [category, setCategory] = useState<BlogCategory>('General');
   const [metaDescription, setMetaDescription] = useState('');
   const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState('');
-  const [currentKeyword, setCurrentKeyword] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   
   const { user, isAdmin } = useAuth();
   const router = useRouter();
@@ -88,28 +95,6 @@ export default function EditBlogPostPage({ params }: Props) {
 
     fetchBlogPost();
   }, [params.id, user, isAdmin, router]);
-
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
-      setCurrentTag('');
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
-  };
-
-  const handleAddKeyword = () => {
-    if (currentKeyword.trim() && !metaKeywords.includes(currentKeyword.trim())) {
-      setMetaKeywords([...metaKeywords, currentKeyword.trim()]);
-      setCurrentKeyword('');
-    }
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setMetaKeywords(metaKeywords.filter(k => k !== keyword));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +143,28 @@ export default function EditBlogPostPage({ params }: Props) {
     }
   };
 
+  // Function to render content preview with basic formatting
+  const renderContentPreview = () => {
+    if (!content) return <p className="text-gray-400 italic">No content to preview</p>;
+    
+    // Replace [verse]...[/verse] with styled div
+    let formattedContent = content.replace(
+      /\[verse\](.*?)\[\/verse\]/gs, 
+      '<div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-4 italic">$1</div>'
+    );
+    
+    // Replace [quote]...[/quote] with styled div
+    formattedContent = formattedContent.replace(
+      /\[quote\](.*?)\[\/quote\]/gs, 
+      '<div class="bg-gray-50 border-l-4 border-gray-500 p-4 my-4">$1</div>'
+    );
+    
+    // Replace newlines with <br>
+    formattedContent = formattedContent.replace(/\n/g, '<br>');
+    
+    return <div dangerouslySetInnerHTML={{ __html: formattedContent }} />;
+  };
+
   if (!user || !isAdmin) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -183,16 +190,35 @@ export default function EditBlogPostPage({ params }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex items-center mb-8">
-        <Button variant="ghost" size="icon" asChild className="mr-4">
-          <Link href="/admin/blog">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Blog Post</h1>
-          <p className="text-gray-600">Update your blog post</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" asChild className="mr-4">
+            <Link href="/admin/blog">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Blog Post</h1>
+            <p className="text-gray-600">Update your blog post</p>
+          </div>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => setPreviewMode(!previewMode)}
+          className="flex items-center gap-2"
+        >
+          {previewMode ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              <span>Edit Mode</span>
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              <span>Preview Mode</span>
+            </>
+          )}
+        </Button>
       </div>
       
       <Separator className="my-6" />
@@ -233,19 +259,17 @@ export default function EditBlogPostPage({ params }: Props) {
                 
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
-                  <div className="text-xs text-gray-500 mb-2">
-                    <p>Use [verse]...[/verse] to format Bible verses</p>
-                    <p>Use [quote]...[/quote] to format quotes</p>
-                  </div>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Enter blog post content"
-                    required
-                    rows={15}
-                    className="font-mono"
-                  />
+                  {previewMode ? (
+                    <div className="border rounded-md p-4 min-h-[300px] prose max-w-none">
+                      {renderContentPreview()}
+                    </div>
+                  ) : (
+                    <RichTextEditor
+                      value={content}
+                      onChange={setContent}
+                      placeholder="Enter blog post content"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -258,29 +282,11 @@ export default function EditBlogPostPage({ params }: Props) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="featuredImageUrl">Image URL *</Label>
-                  <Input
-                    id="featuredImageUrl"
-                    value={featuredImageUrl}
-                    onChange={(e) => setFeaturedImageUrl(e.target.value)}
-                    placeholder="Enter URL for featured image"
-                    required
-                  />
-                </div>
-                
-                {featuredImageUrl && (
-                  <div className="mt-4 border rounded-md p-2">
-                    <p className="text-sm text-gray-500 mb-2">Preview:</p>
-                    <div className="relative h-40 w-full rounded overflow-hidden">
-                      <img 
-                        src={featuredImageUrl} 
-                        alt="Featured image preview" 
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  </div>
-                )}
+                <ImageUploader
+                  value={featuredImageUrl}
+                  onChange={setFeaturedImageUrl}
+                  label="Featured Image URL *"
+                />
               </CardContent>
             </Card>
           </div>
@@ -294,71 +300,15 @@ export default function EditBlogPostPage({ params }: Props) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select 
-                    value={category} 
-                    onValueChange={(value) => setCategory(value as BlogCategory)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="General">General</SelectItem>
-                      <SelectItem value="Spiritual Growth">Spiritual Growth</SelectItem>
-                      <SelectItem value="Bible Study">Bible Study</SelectItem>
-                      <SelectItem value="Prayer">Prayer</SelectItem>
-                      <SelectItem value="Testimony">Testimony</SelectItem>
-                      <SelectItem value="Community">Community</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <CategorySelector
+                  value={category}
+                  onChange={setCategory}
+                />
                 
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="tags"
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      placeholder="Add a tag"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleAddTag}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {tags.map((tag) => (
-                        <div 
-                          key={tag} 
-                          className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <TagManager
+                  tags={tags}
+                  onChange={setTags}
+                />
               </CardContent>
             </Card>
             
@@ -369,63 +319,15 @@ export default function EditBlogPostPage({ params }: Props) {
                   Optimize your blog post for search engines
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Meta Description</Label>
-                  <Textarea
-                    id="metaDescription"
-                    value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value)}
-                    placeholder="Enter meta description for SEO"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="metaKeywords">Meta Keywords</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="metaKeywords"
-                      value={currentKeyword}
-                      onChange={(e) => setCurrentKeyword(e.target.value)}
-                      placeholder="Add a keyword"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddKeyword();
-                        }
-                      }}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleAddKeyword}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {metaKeywords.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {metaKeywords.map((keyword) => (
-                        <div 
-                          key={keyword} 
-                          className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm"
-                        >
-                          {keyword}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveKeyword(keyword)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <CardContent>
+                <SeoSettings
+                  title={title}
+                  metaDescription={metaDescription}
+                  metaKeywords={metaKeywords}
+                  onTitleChange={setTitle}
+                  onDescriptionChange={setMetaDescription}
+                  onKeywordsChange={setMetaKeywords}
+                />
               </CardContent>
             </Card>
             
