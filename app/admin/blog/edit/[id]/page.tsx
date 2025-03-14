@@ -149,13 +149,13 @@ export default function EditBlogPostPage({ params }: Props) {
     
     // Replace [verse]...[/verse] with styled div
     let formattedContent = content.replace(
-      /\[verse\](.*?)\[\/verse\]/gs, 
+      /\[verse\]([\s\S]*?)\[\/verse\]/g, 
       '<div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-4 italic">$1</div>'
     );
     
     // Replace [quote]...[/quote] with styled div
     formattedContent = formattedContent.replace(
-      /\[quote\](.*?)\[\/quote\]/gs, 
+      /\[quote\]([\s\S]*?)\[\/quote\]/g, 
       '<div class="bg-gray-50 border-l-4 border-gray-500 p-4 my-4">$1</div>'
     );
     
