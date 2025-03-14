@@ -413,12 +413,4 @@ export async function getRelatedBlogPosts(
   }
 }
 
-export async function incrementBlogPostViews(id: string): Promise<void> {
-  try {
-    await updateDoc(doc(db, COLLECTIONS.BLOG_POSTS, id), {
-      views: increment(1),
-    });
-  } catch (error) {
-    throw handleFirebaseError(error);
-  }
-} 
+// Note: incrementBlogPostViews has been moved to app/actions/blog.ts as a server action 

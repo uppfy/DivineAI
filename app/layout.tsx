@@ -13,25 +13,31 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Divine Comfort | Spiritual Growth and Community",
-  description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
-  keywords: "spiritual growth, Christian community, daily devotionals, Bible study, spiritual guidance, faith journey, prayer, Christian resources",
-  authors: [{ name: "Divine Comfort Team" }],
-  creator: "Divine Comfort",
-  publisher: "Divine Comfort",
+  title: {
+    default: 'Divine Comfort | Spiritual Guidance & Support',
+    template: '%s | Divine Comfort'
+  },
+  description: 'Find spiritual guidance, prayer support, and a community of faith at Divine Comfort. Connect with others on your spiritual journey.',
+  keywords: ['spiritual guidance', 'prayer support', 'faith community', 'Christian community', 'Bible study', 'spiritual growth'],
+  authors: [{ name: 'Divine Comfort Team' }],
+  creator: 'Divine Comfort',
+  publisher: 'Divine Comfort',
   formatDetection: {
     email: false,
+    address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://divine-comfort.com"),
+  metadataBase: new URL('https://divine-comfort.com'),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Divine Comfort | Spiritual Growth and Community",
-    description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
-    url: "https://divine-comfort.com",
-    siteName: "Divine Comfort",
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://divine-comfort.com',
+    title: 'Divine Comfort | Spiritual Guidance & Support',
+    description: 'Find spiritual guidance, prayer support, and a community of faith at Divine Comfort.',
+    siteName: 'Divine Comfort',
     images: [
       {
         url: "https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//Divine%20Comfort%20featured%20image.png",
@@ -40,13 +46,12 @@ export const metadata: Metadata = {
         alt: "Divine Comfort - A place for spiritual growth and community",
       },
     ],
-    locale: "en_US",
-    type: "website",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Divine Comfort | Spiritual Growth and Community",
-    description: "Divine Comfort offers spiritual guidance, daily devotionals, Bible study resources, and a supportive Christian community to nurture your faith journey and spiritual well-being.",
+    card: 'summary_large_image',
+    title: 'Divine Comfort | Spiritual Guidance & Support',
+    description: 'Find spiritual guidance, prayer support, and a community of faith at Divine Comfort.',
+    creator: '@divinecomfort',
     images: ["https://fcuiwgbwavqwunqerchc.supabase.co/storage/v1/object/public/assets//Divine%20Comfort%20featured%20image.png"],
   },
   icons: {
@@ -69,6 +74,14 @@ export const metadata: Metadata = {
         sizes: "180x180",
       },
     ],
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  other: {
+    'link-preload-as': 'style',
   },
 };
 
