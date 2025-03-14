@@ -1,7 +1,7 @@
 'use server';
 
 import { adminDb } from '@/lib/firebase-admin';
-import { increment } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * Increment the view count for a blog post
@@ -10,7 +10,7 @@ import { increment } from 'firebase-admin/firestore';
 export async function incrementBlogPostViews(postId: string): Promise<void> {
   try {
     await adminDb.collection('blogPosts').doc(postId).update({
-      views: increment(1)
+      views: FieldValue.increment(1)
     });
   } catch (error) {
     console.error('Error incrementing blog post views:', error);
