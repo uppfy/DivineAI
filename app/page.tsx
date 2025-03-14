@@ -5,11 +5,14 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Book, Users, BookText, ArrowRight, PenLine, HandHeart, ChevronRight, Loader2, UserPlus } from "lucide-react";
+import { Book, Users, BookText, ArrowRight, PenLine, HandHeart, ChevronRight, Loader2, UserPlus, Calendar, Tag } from "lucide-react";
 import Image from "next/image";
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import Link from "next/link";
+import { collection, query, orderBy, limit, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useCollection } from '@/hooks/useFirestore';
+import { formatDate } from '@/lib/utils';
+import { BlogPost } from '@/types/database';
 
 interface Scripture {
   text: string;
@@ -31,6 +34,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingDevotional, setIsGeneratingDevotional] = useState(false);
+  const [latestBlogPosts, setLatestBlogPosts] = useState<BlogPost[]>([]);
+  const [loadingBlogPosts, setLoadingBlogPosts] = useState(true);
 
   // Get today's date in YYYY-MM-DD format for the timezone
   const today = new Date();
@@ -77,6 +82,85 @@ export default function Home() {
       generateDevotional();
     }
   }, [isLoadingDevotional, devotionalError, devotional, isGeneratingDevotional]);
+
+  // Fetch latest blog posts
+  useEffect(() => {
+    const fetchLatestBlogPosts = async () => {
+      try {
+        setLoadingBlogPosts(true);
+        const blogPostsRef = collection(db, 'blogPosts');
+        
+        console.log('Fetching from collection:', blogPostsRef.path);
+        
+        // First try: Query with status filter and publishedAt ordering
+        const q = query(
+          blogPostsRef,
+          where('status', '==', 'published'),
+          orderBy('publishedAt', 'desc'),
+          limit(3)
+        );
+        
+        console.log('Executing filtered query...');
+        let querySnapshot = await getDocs(q);
+        console.log('Filtered query returned', querySnapshot.size, 'documents');
+        
+        // If no results, try with createdAt ordering instead
+        if (querySnapshot.empty) {
+          console.log('No documents found with publishedAt ordering, trying createdAt...');
+          
+          const qByCreatedAt = query(
+            blogPostsRef,
+            where('status', '==', 'published'),
+            orderBy('createdAt', 'desc'),
+            limit(3)
+          );
+          
+          querySnapshot = await getDocs(qByCreatedAt);
+          console.log('CreatedAt query returned', querySnapshot.size, 'documents');
+        }
+        
+        // If still no results, try without filters
+        if (querySnapshot.empty) {
+          console.log('No documents found with filters, trying without filters...');
+          
+          const qNoFilters = query(
+            blogPostsRef,
+            orderBy('createdAt', 'desc'),
+            limit(3)
+          );
+          
+          querySnapshot = await getDocs(qNoFilters);
+          console.log('Unfiltered query returned', querySnapshot.size, 'documents');
+        }
+        
+        if (!querySnapshot.empty) {
+          const posts = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            console.log('Document data:', data);
+            return { 
+              id: doc.id, 
+              ...data,
+              // Ensure required fields have default values if missing
+              status: data.status || 'published',
+              publishedAt: data.publishedAt || data.createdAt,
+              category: data.category || 'General',
+              excerpt: data.excerpt || 'No excerpt available',
+              slug: data.slug || doc.id
+            } as BlogPost;
+          });
+          setLatestBlogPosts(posts);
+        } else {
+          console.log('No documents found in the collection at all');
+        }
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setLoadingBlogPosts(false);
+      }
+    };
+
+    fetchLatestBlogPosts();
+  }, []);
 
   const handleSubmit = async () => {
     if (!feeling.trim()) return;
@@ -323,42 +407,69 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center text-[#6b21a8] mb-12">
             Latest Divine Comfort Blogs
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                image: "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-                title: "Finding Peace in Daily Prayer",
-                excerpt: "Discover how establishing a daily prayer routine can transform your spiritual life...",
-              },
-              {
-                image: "https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-                title: "Understanding God's Love",
-                excerpt: "Explore the depths of God's unconditional love and how it shapes our lives...",
-              },
-              {
-                image: "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-                title: "Walking in Faith",
-                excerpt: "Learn how to strengthen your faith walk through life's challenges...",
-              },
-            ].map((post, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                <div className="aspect-video relative overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-200"
-                  />
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-[#6b21a8] mb-2">{post.title}</h3>
-                  <p className="text-gray-600 mb-4">{post.excerpt}</p>
-                  <Button variant="link" className="text-[#6b21a8] p-0 hover:text-[#5b1b8f]">
-                    Read More
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          {loadingBlogPosts ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center space-y-4">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#6b21a8]" />
+                <p className="text-gray-600">Loading latest blog posts...</p>
+              </div>
+            </div>
+          ) : latestBlogPosts.length === 0 ? (
+            <div className="text-center space-y-4 h-64 flex items-center justify-center">
+              <div>
+                <PenLine className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No blog posts available yet.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {latestBlogPosts.map((post) => (
+                <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                  <div className="aspect-video relative overflow-hidden">
+                    <Image
+                      src={post.featuredImageUrl || 'https://via.placeholder.com/800x450?text=No+Image'}
+                      alt={post.title || 'Blog post'}
+                      fill
+                      className="object-cover transform hover:scale-105 transition-transform duration-200"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(post.publishedAt || post.createdAt || new Date().toISOString())}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Tag className="h-4 w-4" />
+                        <span>{post.category || 'General'}</span>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-[#6b21a8] mb-2">{post.title || 'Untitled Post'}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt || 'No excerpt available'}</p>
+                    <Button 
+                      variant="link" 
+                      className="text-[#6b21a8] p-0 hover:text-[#5b1b8f]"
+                      asChild
+                    >
+                      <Link href={`/blog/${post.slug || post.id}`}>
+                        Read More
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          <div className="text-center mt-12">
+            <Button 
+              className="bg-[#6b21a8] hover:bg-[#5b1b8f]"
+              onClick={() => router.push('/blog')}
+            >
+              View All Blog Posts
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       </section>

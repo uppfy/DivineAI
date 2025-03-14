@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, Calendar, Tag } from 'lucide-react';
+import { ChevronRight, Calendar, Tag, PenLine } from 'lucide-react';
 import BlogSidebar from '@/components/blog/BlogSidebar';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
 export const metadata: Metadata = {
   title: 'Blog | Divine Comfort',
@@ -16,13 +18,52 @@ export const metadata: Metadata = {
   keywords: 'spiritual blog, Christian blog, Bible study, spiritual guidance, faith journey',
 };
 
+// Direct Firestore query to debug
+async function getBlogPostsDirect() {
+  try {
+    console.log('Fetching blog posts directly from Firestore');
+    const blogPostsRef = collection(db, 'blogPosts');
+    const q = query(
+      blogPostsRef,
+      orderBy('createdAt', 'desc'),
+      limit(10)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    console.log('Direct query returned', querySnapshot.size, 'documents');
+    
+    if (querySnapshot.empty) {
+      console.log('No documents found in direct query');
+      return [];
+    }
+    
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      console.log('Document data:', data);
+      return { id: doc.id, ...data } as BlogPost;
+    });
+  } catch (error) {
+    console.error('Error in direct Firestore query:', error);
+    return [];
+  }
+}
+
 async function getBlogPosts() {
   try {
+    // Try the original method first
     const { items } = await getPublishedBlogPosts();
+    
+    // If no items, try direct query
+    if (items.length === 0) {
+      console.log('No items from getPublishedBlogPosts, trying direct query');
+      return await getBlogPostsDirect();
+    }
+    
     return items;
   } catch (error) {
     console.error('Error fetching blog posts:', error);
-    return [];
+    // Fallback to direct query on error
+    return await getBlogPostsDirect();
   }
 }
 
@@ -74,18 +115,34 @@ export default async function BlogPage() {
 
             <TabsContent value="all">
               <div className="grid grid-cols-1 gap-8">
-                {allPosts.map((post) => (
-                  <BlogPostCard key={post.id} post={post} />
-                ))}
+                {allPosts.length > 0 ? (
+                  allPosts.map((post) => (
+                    <BlogPostCard key={post.id} post={post} />
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <PenLine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No Blog Posts Yet</h3>
+                    <p className="text-gray-500">Check back soon for new content!</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
             {categories.map((category) => (
               <TabsContent key={category} value={category}>
                 <div className="grid grid-cols-1 gap-8">
-                  {categoryPosts[category].map((post) => (
-                    <BlogPostCard key={post.id} post={post} />
-                  ))}
+                  {categoryPosts[category].length > 0 ? (
+                    categoryPosts[category].map((post) => (
+                      <BlogPostCard key={post.id} post={post} />
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <PenLine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">No Posts in {category}</h3>
+                      <p className="text-gray-500">Check back soon for new content in this category!</p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             ))}
@@ -143,4 +200,4 @@ function BlogPostCard({ post }: { post: BlogPost }) {
       </CardFooter>
     </Card>
   );
-} 
+}
