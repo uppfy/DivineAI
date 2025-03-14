@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
 import VerificationBanner from '@/components/VerificationBanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -97,15 +98,17 @@ export default function RootLayout({
           <VerificationBanner />
           <ClientProvider>
             <ProfileProvider>
-              <div className="flex min-h-screen flex-col">
-                <Navbar1 />
-                <main className="flex-1">
-                  <ProtectedRoute>
-                    {children}
-                  </ProtectedRoute>
-                </main>
-                <Footer />
-              </div>
+              <TooltipProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Navbar1 />
+                  <main className="flex-1">
+                    <ProtectedRoute>
+                      {children}
+                    </ProtectedRoute>
+                  </main>
+                  <Footer />
+                </div>
+              </TooltipProvider>
             </ProfileProvider>
           </ClientProvider>
         </AuthProvider>
