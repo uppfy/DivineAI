@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/select";
 
 interface CategorySelectorProps {
-  value: string;
-  onChange: (category: string) => void;
+  value: BlogCategory;
+  onChange: (category: BlogCategory) => void;
 }
 
 export default function CategorySelector({ value, onChange }: CategorySelectorProps) {
@@ -38,12 +38,12 @@ export default function CategorySelector({ value, onChange }: CategorySelectorPr
         // Add default categories if none exist
         if (fetchedCategories.length === 0) {
           setCategories([
-            { id: 'spiritual-growth', name: 'Spiritual Growth' },
-            { id: 'prayer', name: 'Prayer' },
-            { id: 'bible-study', name: 'Bible Study' },
-            { id: 'daily-devotional', name: 'Daily Devotional' },
-            { id: 'testimonies', name: 'Testimonies' },
-            { id: 'general', name: 'General' },
+            { id: 'Spiritual Growth', name: 'Spiritual Growth' },
+            { id: 'Prayer', name: 'Prayer' },
+            { id: 'Bible Study', name: 'Bible Study' },
+            { id: 'Testimony', name: 'Testimony' },
+            { id: 'Community', name: 'Community' },
+            { id: 'General', name: 'General' },
           ]);
         } else {
           setCategories(fetchedCategories);
@@ -52,12 +52,12 @@ export default function CategorySelector({ value, onChange }: CategorySelectorPr
         console.error('Error fetching categories:', error);
         // Fallback to default categories
         setCategories([
-          { id: 'spiritual-growth', name: 'Spiritual Growth' },
-          { id: 'prayer', name: 'Prayer' },
-          { id: 'bible-study', name: 'Bible Study' },
-          { id: 'daily-devotional', name: 'Daily Devotional' },
-          { id: 'testimonies', name: 'Testimonies' },
-          { id: 'general', name: 'General' },
+          { id: 'Spiritual Growth', name: 'Spiritual Growth' },
+          { id: 'Prayer', name: 'Prayer' },
+          { id: 'Bible Study', name: 'Bible Study' },
+          { id: 'Testimony', name: 'Testimony' },
+          { id: 'Community', name: 'Community' },
+          { id: 'General', name: 'General' },
         ]);
       } finally {
         setLoading(false);
@@ -83,7 +83,7 @@ export default function CategorySelector({ value, onChange }: CategorySelectorPr
           <Label htmlFor="category">Category</Label>
           <Select 
             value={value} 
-            onValueChange={onChange}
+            onValueChange={(value) => onChange(value as BlogCategory)}
             disabled={loading}
           >
             <SelectTrigger id="category">

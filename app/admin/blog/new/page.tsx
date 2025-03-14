@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { createBlogPost } from '@/lib/db';
-import { BlogPost } from '@/types/database';
+import { BlogPost, BlogCategory } from '@/types/database';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ export default function NewBlogPostPage() {
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState('');
-  const [category, setCategory] = useState('spiritual-growth');
+  const [category, setCategory] = useState<BlogCategory>('General');
   const [metaDescription, setMetaDescription] = useState('');
   const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -63,8 +63,7 @@ export default function NewBlogPostPage() {
         authorId: user?.uid || '',
         authorName: user?.displayName || '',
         featuredImageUrl,
-        categoryId: category,
-        categoryName: '', // This will be filled in by the server
+        category,
         tags,
         status,
         publishedAt: status === 'published' ? new Date().toISOString() : null,
